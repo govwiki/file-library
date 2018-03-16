@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+	<title>That's an Error!</title>
+	<style>
+        html {
+            color:#333;
+            font-family: "Lucida Console", Courier, monospace;
+            font-size:14px;
+            background:#eeeeee;
+        }
+
+        .content {
+            margin:0 auto;
+            width:1000px;
+            margin-top:20px;
+            padding:10px 0 10px 0;
+            border:1px solid #EEE;
+            background: none repeat scroll 0 0 white;
+            box-shadow: 0 5px 10px -5px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+	    h1 {
+            font-size:18px;
+		    text-align:center;
+        }
+
+	    h1.title {
+            color:red;
+        }
+	
+	    h2 {
+            font-size:16px;
+		    text-align:center;
+        }
+	
+	    p {
+            text-align:center;
+        }
+
+	    hr {
+            border:#fe4902 solid 1px;
+        }
+	</style>
+</head>
+
+<body>
+	<div class="content">
+        <?php if ($type === 'not_found'): ?>
+            <h1>Sorry, but requested resource not found!</h1>
+        <?php else: ?>
+            <h1>Sorry, but that's an error!</h1>
+        <?php endif ?>
+    </div>
+</body>
+</html>

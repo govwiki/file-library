@@ -1,0 +1,8 @@
+# IntelliJ project files
+/.idea
+/.env
+
+/vendor/
+/phinx.yml
+
+/docker/db

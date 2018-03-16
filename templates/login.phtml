@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <title>CAFRS and Single Audits for US Governments and Non-Profits</title>
+
+    <link rel="stylesheet" href="/style.css">
+    <script src="/sorttable.js"></script>
+</head>
+
+<body>
+    <main>
+        <form method="post">
+            <div>
+                <label for="username">Username:</label>
+                <input id="username" name="username">
+            </div>
+            <div>
+                <label for="password">Password:</label>
+                <input id="password" name="password" type="password">
+            </div>
+            <?php if ($error !== ''): ?>
+                <div><?php echo $error; ?></div>
+            <?php endif ?>
+            <div>
+                <button>Submit</button>
+            </div>
+        </form>
+    </main>
+</body>
+</html>

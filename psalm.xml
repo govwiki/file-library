@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<psalm
+    name="Govwiki file library"
+    stopOnFirstError="false"
+    useDocblockTypes="true"
+    useDocblockPropertyTypes="true"
+    totallyTyped="true"
+    strictBinaryOperands="false"
+    rememberPropertyAssignmentsAfterCall="true"
+    throwExceptionOnError="0"
+    requireVoidReturnType="true"
+    useAssertForType="true"
+    allowFileIncludes="false"
+>
+    <projectFiles>
+        <directory name="src" />
+    </projectFiles>
+
+    <issueHandlers>
+        <LessSpecificReturnType errorLevel="info" />
+
+        <DeprecatedMethod errorLevel="info" />
+
+        <MissingClosureReturnType errorLevel="info" />
+        <MissingReturnType errorLevel="info" />
+        <MissingPropertyType errorLevel="info" />
+        <InvalidDocblock errorLevel="info" />
+        <MisplacedRequiredParam errorLevel="info" />
+
+        <PropertyNotSetInConstructor errorLevel="info" />
+        <MissingConstructor errorLevel="info" />
+        <UntypedParam errorLevel="info" />
+    </issueHandlers>
+</psalm>
