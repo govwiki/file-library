@@ -1,7 +1,4 @@
-#
-# Project specific options.
-#
-PROJECT_NAME := govwiki_filelib
+include makefile.config
 
 #
 # Insure that docker and docker compose command is exists.
@@ -20,7 +17,10 @@ ifndef DOCKER_COMPOSE
 $(error You should install 'docker-compose' first)
 endif
 
-.PHONY: start db-cli app-cli
+phinx_config: phinx.yml.dist
+	@sed -- 's/host: ~/host: $(DB_HOST)/; s/name: ~/name: $(DB_NAME)/; s/user: ~/user: $(DB_USER)/; s/pass: ~/pass: $(DB_PASSWORD)/' phinx.yml.dist > phinx.yml
+
+.PHONY: start db-cli app-cli node-cli node-restart
 
 #
 # Start application in docker containers. Development environment.
@@ -32,7 +32,7 @@ start:
 # Open mysql cli to database in container.
 #
 db-cli:
-	sudo $(DOCKER_COMPOSE) $(DOCKER_COMPOSE_DEV_FLAGS) exec db mysql -u root -p govwiki_filelib
+	sudo $(DOCKER_COMPOSE) $(DOCKER_COMPOSE_DEV_FLAGS) exec db mysql -u $(DB_USER) -p$(DB_PASSWORD) $(DB_NAME)
 
 #
 # Open shell to application server.

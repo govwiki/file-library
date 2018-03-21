@@ -6,3 +6,6 @@
 /phinx.yml
 
 /docker/db
+
+/var
+!/var/cache/twig/.gitkeep

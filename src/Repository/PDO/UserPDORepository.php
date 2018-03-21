@@ -20,7 +20,10 @@ class UserPDORepository extends AbstractPDORepository implements UserRepositoryI
      */
     public function findByUsername(string $username)
     {
-        $stmt = $this->execute('SELECT * FROM `users` WHERE username = \'test\'');
+        $stmt = $this->execute('SELECT * FROM `users` WHERE username = :username', [
+            'username' => $username,
+        ]);
+
         /** @var array|boolean $data */
         $data = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -28,12 +31,6 @@ class UserPDORepository extends AbstractPDORepository implements UserRepositoryI
             return null;
         }
 
-        $user = $this->hydrate(User::class, $data);
-
-        if (! $user instanceof User) {
-            $user = null;
-        }
-
-        return $user;
+        return $this->hydrate(User::class, $data);
     }
 }

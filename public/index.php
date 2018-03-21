@@ -2,4 +2,5 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-new \App\Core();
+$app = \App\Kernel\AppFactory::create();
+$app->run();

@@ -1,12 +1,11 @@
 <?php
 
-
 use Phinx\Seed\AbstractSeed;
 
 /**
- * Class TestFixtures
+ * Class UserFixtures
  */
-class TestFixtures extends AbstractSeed
+class UserFixtures extends AbstractSeed
 {
 
     /**
@@ -21,7 +20,6 @@ class TestFixtures extends AbstractSeed
      */
     public function run()
     {
-
         $this->table('users')
             ->insert([
                 [
@@ -29,6 +27,18 @@ class TestFixtures extends AbstractSeed
                     'password' => password_hash('test', PASSWORD_BCRYPT),
                     'first_name' => 'John',
                     'last_name' => 'Smith',
+                ],
+                [
+                    'username' => 'user1',
+                    'password' => password_hash('user1', PASSWORD_BCRYPT),
+                    'first_name' => 'Jane',
+                    'last_name' => 'Smith',
+                ],
+                [
+                    'username' => 'user2',
+                    'password' => password_hash('user2', PASSWORD_BCRYPT),
+                    'first_name' => 'John',
+                    'last_name' => 'Due',
                 ],
             ])
             ->save();

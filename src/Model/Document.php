@@ -4,6 +4,7 @@ namespace App\Model;
 
 use Assert\Assert;
 use Assert\Assertion;
+use Cocur\Slugify\Slugify;
 
 /**
  * Class Document
@@ -14,14 +15,19 @@ class Document
 {
 
     /**
-     * @var integer|null
+     * @var string
      */
-    private $id;
+    private $slug;
 
     /**
      * @var string
      */
     private $name;
+
+    /**
+     * @var string
+     */
+    private $type;
 
     /**
      * @var string
@@ -56,32 +62,40 @@ class Document
     /**
      * Document constructor.
      *
-     * @param string  $name       Full document name.
-     * @param string  $state      For which state this document contains information.
-     * @param integer $year       For which year this document contains information.
-     * @param string  $path       Path do document file.
-     * @param integer $fileSize   File size in bytes.
-     * @param User    $uploadedBy Who upload this document.
+     * @param string    $name       Full document name.
+     * @param string    $type       Document type.
+     * @param string    $state      For which state this document contains information.
+     * @param integer   $year       For which year this document contains information.
+     * @param string    $path       Path do document file.
+     * @param integer   $fileSize   File size in bytes.
+     * @param User|null $uploadedBy Who upload this document.
      */
     public function __construct(
         string $name,
+        string $type,
         string $state,
         int $year,
         string $path,
         int $fileSize,
-        User $uploadedBy
+        User $uploadedBy = null
     ) {
         $state = strtoupper($state);
 
+        /** @psalm-suppress MixedMethodCall */
         Assert::lazy()
             ->that($name, 'name')->notBlank()->maxLength(255)
+            ->that($type, 'type')->notBlank()->maxLength(255)
             ->that($state, 'state')->notBlank()->length(2)
             ->that($year, 'year')->greaterThan(0)
             ->that($path, 'year')->notBlank()->maxLength(255)
             ->that($fileSize, 'fileSize')->greaterThan(0)
             ->tryAll();
 
+        $slugify = new Slugify();
+
+        $this->slug = $slugify->slugify($type .'/'. $state .'/'. $year .'/'. $name);
         $this->name = $name;
+        $this->type = $type;
         $this->state = $state;
         $this->year = $year;
         $this->path = $path;
@@ -91,11 +105,11 @@ class Document
     }
 
     /**
-     * @return integer|null
+     * @return string
      */
-    public function getId()
+    public function getSlug(): string
     {
-        return $this->id;
+        return $this->slug;
     }
 
     /**
@@ -113,8 +127,31 @@ class Document
      */
     public function setName(string $name)
     {
+        /** @psalm-suppress MixedMethodCall */
         Assert::that($name)->notBlank()->maxLength(255);
         $this->name = $name;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    /**
+     * @param string $type Document type.
+     *
+     * @return $this
+     */
+    public function setType(string $type)
+    {
+        /** @psalm-suppress MixedMethodCall */
+        Assert::that($type)->notBlank()->maxLength(255);
+        $this->type = $type;
 
         return $this;
     }
@@ -137,6 +174,7 @@ class Document
      */
     public function setState(string $state)
     {
+        /** @psalm-suppress MixedMethodCall */
         Assert::that($state)->notBlank()->maxLength(2);
         $this->state = strtoupper($state);
 
@@ -179,6 +217,7 @@ class Document
      */
     public function setPath(string $path)
     {
+        /** @psalm-suppress MixedMethodCall */
         Assert::that($path)->notBlank()->maxLength(255);
         $this->path = $path;
 

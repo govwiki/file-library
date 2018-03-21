@@ -39,8 +39,10 @@ class SetupSchema extends AbstractMigration
             ->addColumn('last_name', 'string')
             ->create();
 
-        $this->table('books')
+        $this->table('documents', [ 'id' => false, 'primary_key' => 'path' ])
+            ->addColumn('slug', 'string')
             ->addColumn('name', 'string')
+            ->addColumn('type', 'string')
             ->addColumn('state', 'string', [ 'limit' => 2 ])
             ->addColumn('year', 'integer')
             ->addColumn('path', 'string')

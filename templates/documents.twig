@@ -1,0 +1,22 @@
+{% extends 'layout.twig' %}
+
+{% block main %}
+    <h1>CAFRS and Single Audits for US Governments and Non-Profits</h1>
+
+    <table class="sortable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>File Size</th>
+            </tr>
+        </thead>
+        <tbody>
+            {%- for document in documents -%}
+                <tr class="file">
+                    <td><a href="{{ path_for('document', { slug: document.slug }) }}">{{- document.name -}}</a></td>
+                    <td>{{- document.fileSize|prettyFileSize -}}</td>
+                </tr>
+            {%- endfor -%}
+        </tbody>
+    </table>
+{% endblock main %}

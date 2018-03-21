@@ -44,6 +44,7 @@ class AuthenticationMiddleware
             $request = $request->withAttribute('user', $user);
         }
 
+        /** @psalm-suppress MixedReturnStatement */
         return $next($request, $response);
     }
 }

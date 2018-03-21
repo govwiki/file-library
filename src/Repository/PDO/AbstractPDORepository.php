@@ -35,9 +35,10 @@ abstract class AbstractPDORepository
      */
     protected function execute(string $sql, array $params = []): \PDOStatement
     {
+        /** @var \PDOStatement|boolean $stmt */
         $stmt = $this->pdo->prepare($sql);
 
-        if ($stmt === false) {
+        if (! $stmt instanceof \PDOStatement) {
             throw new \PDOException(sprintf(
                 'Can\'t prepare sql \'%s\'',
                 $sql
@@ -55,52 +56,40 @@ abstract class AbstractPDORepository
     }
 
     /**
+     * @template T
+     * @template-typeof T $class
+     *
      * Hydrate collection of raw data from DB to application models.
      *
      * @param string  $class      Hydrated model fqcn.
      * @param array[] $collection Collection of raw data from storage.
      *
      * @return object[]
+     * @psalm-return T[]
      */
     protected function hydrateCollection(string $class, array $collection)
     {
         Assertion::allIsArray($collection);
 
+        /** @psalm-suppress LessSpecificReturnStatement */
         return array_map(function (array $row) use ($class) {
             return $this->hydrate($class, $row);
         }, $collection);
     }
 
     /**
+     * @template T
+     * @template-typeof T $class
+     *
      * Hydrate raw data from DB to application model.
      *
      * @param string $class Hydrated model fqcn.
      * @param array  $data  Raw data from storage.
      *
      * @return object
+     * @psalm-return T
      */
     protected function hydrate(string $class, array $data)
-    {
-        $model = $this->doHydrate($class, $data);
-
-        if (! $model instanceof $class) {
-            throw new \RuntimeException(sprintf(
-                'Expects instance of \'%s\' but got \'%s\'',
-                $class,
-                is_object($model) ? get_class($model) : gettype($model)
-            ));
-        }
-
-        return $model;
-    }
-
-    /**
-     * @param string $class Hydrated model fqcn.
-     * @param array  $data  Raw data from storage.
-     *
-     * @return object Instance of specified model.
-     */
-    private function doHydrate(string $class, array $data)
     {
         $reflection = new \ReflectionClass($class);
 
@@ -108,6 +97,7 @@ abstract class AbstractPDORepository
         $model = $reflection->newInstanceWithoutConstructor();
 
         try {
+            /** @var \ReflectionProperty $property */
             foreach ($properties as $property) {
                 $property->setAccessible(true);
                 //
@@ -128,6 +118,7 @@ abstract class AbstractPDORepository
             ), $exception->getCode(), $exception);
         }
 
+        /** @psalm-suppress LessSpecificReturnStatement */
         return $model;
     }
 }

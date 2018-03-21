@@ -5,18 +5,18 @@ namespace App\Action;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Http\Request;
 use Slim\Http\Response;
-use Slim\Views\PhpRenderer;
+use Slim\Views\Twig;
 
 /**
  * Class ErrorAction
  *
  * @package App\Action
  */
-class ErrorAction
+class ErrorHandler
 {
 
     /**
-     * @var PhpRenderer
+     * @var Twig
      */
     private $renderer;
 
@@ -28,10 +28,10 @@ class ErrorAction
     /**
      * IndexAction constructor.
      *
-     * @param PhpRenderer $renderer  A PhpRenderer instance.
-     * @param string      $errorType Application error type.
+     * @param Twig   $renderer  A PhpRenderer instance.
+     * @param string $errorType Application error type.
      */
-    public function __construct(PhpRenderer $renderer, string $errorType)
+    public function __construct(Twig $renderer, string $errorType)
     {
         $this->renderer = $renderer;
         $this->errorType = $errorType;
@@ -44,11 +44,12 @@ class ErrorAction
      * @return ResponseInterface
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @psalm-suppress PossiblyUnusedParam
      */
     public function __invoke(Request $request, Response $response)
     {
         return $this->renderer
-            ->render($response, 'error.phtml', [ 'type' => $this->errorType ])
+            ->render($response, 'error.twig', [ 'type' => $this->errorType ])
             ->withStatus(500);
     }
 }

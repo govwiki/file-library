@@ -1,0 +1,20 @@
+#!/usr/bin/env php
+<?php
+
+const ROOT_PATH = __DIR__ .'/../';
+
+require_once ROOT_PATH . '/vendor/autoload.php';
+
+
+//
+// Load environment specific options.
+//
+$dotenv = new \Dotenv\Dotenv(ROOT_PATH);
+$dotenv->load();
+
+$console = new \Symfony\Component\Console\Application();
+$container = \App\Kernel\ContainerFactory::create(ROOT_PATH, getenv('DEBUG'));
+
+$console->add(new \App\Command\IndexCommand($container->get(\App\Repository\DocumentRepositoryInterface::class)));
+
+$console->run();

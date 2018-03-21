@@ -51,6 +51,7 @@ class User implements \Serializable
         string $firstName,
         string $lastName
     ) {
+        /** @psalm-suppress MixedMethodCall */
         Assert::lazy()
             ->that($username, 'username')->notBlank()->maxLength(255)
             ->that($plainPassword, 'plainPassword')->minLength(6)->maxLength(255)
@@ -87,6 +88,7 @@ class User implements \Serializable
      */
     public function setUsername(string $username): User
     {
+        /** @psalm-suppress MixedMethodCall */
         Assert::that($username)->notBlank()->maxLength(255);
         $this->username = $username;
 
@@ -108,6 +110,7 @@ class User implements \Serializable
      */
     public function changePassword(string $plainPassword): User
     {
+        /** @psalm-suppress MixedMethodCall */
         Assert::that($plainPassword)->minLength(6)->maxLength(255);
         $this->password = password_hash($plainPassword, PASSWORD_BCRYPT);
 
@@ -141,6 +144,7 @@ class User implements \Serializable
      */
     public function setFirstName(string $firstName): User
     {
+        /** @psalm-suppress MixedMethodCall */
         Assert::that($firstName)->notBlank()->maxLength(255);
         $this->firstName = $firstName;
 
@@ -162,6 +166,7 @@ class User implements \Serializable
      */
     public function setLastName(string $lastName): User
     {
+        /** @psalm-suppress MixedMethodCall */
         Assert::that($lastName)->notBlank()->maxLength(255);
         $this->lastName = $lastName;
 
@@ -192,9 +197,10 @@ class User implements \Serializable
      */
     public function unserialize($serialized) // @codingStandardsIgnoreLine
     {
+        /** @psalm-suppress MixedAssignment */
         $data = unserialize($serialized, [ 'allowed_classes' => static::class ]);
 
-        if (count($data) !== 4) {
+        if (! is_array($data) || (count($data) !== 4)) {
             throw new \RuntimeException(sprintf(
                 'Can\'t unserialize model \'%s\'. Serialized data: \'%s\'',
                 static::class,
@@ -202,9 +208,13 @@ class User implements \Serializable
             ));
         }
 
-        $this->id = $data[0];
-        $this->username = $data[1];
-        $this->firstName = $data[2];
-        $this->lastName = $data[3];
+        /** @psalm-suppress MixedArrayAccess */
+        $this->id = (int) $data[0];
+        /** @psalm-suppress MixedArrayAccess */
+        $this->username = (string) $data[1];
+        /** @psalm-suppress MixedArrayAccess */
+        $this->firstName = (string) $data[2];
+        /** @psalm-suppress MixedArrayAccess */
+        $this->lastName = (string) $data[3];
     }
 }

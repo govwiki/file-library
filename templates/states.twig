@@ -1,0 +1,20 @@
+{% extends 'layout.twig' %}
+
+{% block main %}
+    <h1>CAFRS and Single Audits for US Governments and Non-Profits</h1>
+
+    <table class="sortable">
+        <thead>
+            <tr>
+                <th>State</th>
+            </tr>
+        </thead>
+        <tbody>
+            {%- for state in states -%}
+                <tr class="dir">
+                    <td><a href="{{ path_for('years', { type: type, state: state }) }}">{{- state -}}</a></td>
+                </tr>
+            {%- endfor -%}
+        </tbody>
+    </table>
+{% endblock main %}

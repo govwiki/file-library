@@ -30,5 +30,25 @@
         <PropertyNotSetInConstructor errorLevel="info" />
         <MissingConstructor errorLevel="info" />
         <UntypedParam errorLevel="info" />
+
+        <PossiblyUnusedMethod>
+            <errorLevel type="suppress">
+                <directory name="src/Model" />
+                <directory name="src/Controller" />
+                <directory name="src/Repository"/>
+            </errorLevel>
+        </PossiblyUnusedMethod>
+
+        <UnusedClass>
+            <errorLevel type="suppress">
+                <file name="src/Kernel/AppFactory.php"/>
+            </errorLevel>
+        </UnusedClass>
+
+        <UnusedMethod>
+            <errorLevel type="suppress">
+                <file name="src/Command/IndexCommand.php" />
+            </errorLevel>
+        </UnusedMethod>
     </issueHandlers>
 </psalm>

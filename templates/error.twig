@@ -1,8 +1,7 @@
-<!doctype html>
-<html>
-<head>
-	<title>That's an Error!</title>
-	<style>
+{% extends 'layout.twig' %}
+
+{% block stylesheets %}
+    <style>
         html {
             color:#333;
             font-family: "Lucida Console", Courier, monospace;
@@ -21,37 +20,36 @@
             position: relative;
         }
 
-	    h1 {
+        h1 {
             font-size:18px;
-		    text-align:center;
-        }
-
-	    h1.title {
-            color:red;
-        }
-	
-	    h2 {
-            font-size:16px;
-		    text-align:center;
-        }
-	
-	    p {
             text-align:center;
         }
 
-	    hr {
+        h1.title {
+            color:red;
+        }
+
+        h2 {
+            font-size:16px;
+            text-align:center;
+        }
+
+        p {
+            text-align:center;
+        }
+
+        hr {
             border:#fe4902 solid 1px;
         }
-	</style>
-</head>
+    </style>
+{%- endblock styleshhets -%}
 
-<body>
-	<div class="content">
-        <?php if ($type === 'not_found'): ?>
+{% block main %}
+    <div class="content">
+        {%- if type is 'not_found' -%}
             <h1>Sorry, but requested resource not found!</h1>
-        <?php else: ?>
+        {%- else -%}
             <h1>Sorry, but that's an error!</h1>
-        <?php endif ?>
+        {%- endif -%}
     </div>
-</body>
-</html>
+{% endblock main %}
