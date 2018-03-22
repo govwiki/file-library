@@ -1,13 +1,14 @@
 {% extends 'layout.twig' %}
 
 {% block main %}
-    <h1>CAFRS and Single Audits for US Governments and Non-Profits</h1>
-
     <table class="sortable">
         <thead>
             <tr>
                 <th>Name</th>
                 <th>File Size</th>
+                {%- if user is defined -%}
+                    <th>Actions</th>
+                {%- endif -%}
             </tr>
         </thead>
         <tbody>
@@ -15,8 +16,18 @@
                 <tr class="file">
                     <td><a href="{{ path_for('document', { slug: document.slug }) }}">{{- document.name -}}</a></td>
                     <td>{{- document.fileSize|prettyFileSize -}}</td>
+                    {%- if user is defined -%}
+                        <td>
+                            <a href="#">Remove</a>
+                        </td>
+                    {%- endif -%}
                 </tr>
             {%- endfor -%}
         </tbody>
     </table>
+    {%- if user is defined -%}
+        <div style="text-align: center">
+            <button class="btn">Add new document</button>
+        </div>
+    {%- endif -%}
 {% endblock main %}

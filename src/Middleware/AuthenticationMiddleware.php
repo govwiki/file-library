@@ -5,6 +5,7 @@ namespace App\Middleware;
 use App\Service\Authenticator\AuthenticatorInterface;
 use Slim\Http\Request;
 use Slim\Http\Response;
+use Slim\Views\Twig;
 
 /**
  * Class AuthenticationMiddleware
@@ -20,14 +21,21 @@ class AuthenticationMiddleware
     private $authenticator;
 
     /**
+     * @var Twig
+     */
+    private $view;
+
+    /**
      * AuthenticationMiddleware constructor.
      *
      * @param AuthenticatorInterface $authenticator A AuthenticatorInterface
      *                                              instance.
+     * @param Twig                   $view          A view service.
      */
-    public function __construct(AuthenticatorInterface $authenticator)
+    public function __construct(AuthenticatorInterface $authenticator, Twig $view)
     {
         $this->authenticator = $authenticator;
+        $this->view = $view;
     }
 
     /**
@@ -42,6 +50,7 @@ class AuthenticationMiddleware
         $user = $this->authenticator->refresh();
         if ($user !== null) {
             $request = $request->withAttribute('user', $user);
+            $this->view['user'] = $user;
         }
 
         /** @psalm-suppress MixedReturnStatement */

@@ -1,20 +1,22 @@
 {% extends 'layout.twig' %}
 
 {% block main %}
-    <form method="post">
-        <div>
-            <label for="username">Username:</label>
-            <input id="username" name="username">
-        </div>
-        <div>
-            <label for="password">Password:</label>
-            <input id="password" name="password" type="password">
-        </div>
-        {%- if error != '' -%}
-            <div>{{ error }}</div>
-        {%- endif -%}
-        <div>
-            <button>Submit</button>
-        </div>
-    </form>
+    <div class="login-form">
+        <form method="post">
+            {%- if error != '' -%}
+                <div class="error">{{ error }}</div>
+            {%- endif -%}
+            <div class="login-form__row">
+                <label for="username">Username</label>
+                <input id="username" name="username">
+            </div>
+            <div class="login-form__row">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password">
+            </div>
+            <div class="login-form__row">
+                <button class="btn">Submit</button>
+            </div>
+        </form>
+    </div>
 {% endblock main %}

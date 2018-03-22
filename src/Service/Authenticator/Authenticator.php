@@ -91,6 +91,7 @@ class Authenticator implements AuthenticatorInterface
      */
     public function logout()
     {
+        $this->session->clear();
         Helper::destroy();
     }
 }

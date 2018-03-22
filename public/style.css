@@ -21,7 +21,7 @@ h2 {
 	padding: 0 0 12px 0; 
 }
 
-main {
+header, .login-form {
 	box-shadow: 0 5px 10px -5px rgba(0,0,0,0.5);
 	position: relative;
 	background: white; 
@@ -86,55 +86,102 @@ tr:hover td a {
 	color: #000;
 }
 
-/* icons for file types (icons by famfamfam) */
+table tr.file td:first-of-type {
+	padding-left: 15px;
+}
 
-/* images */
-table tr td:first-of-type a[href$=".jpg"], 
-table tr td:first-of-type a[href$=".png"], 
-table tr td:first-of-type a[href$=".gif"], 
-table tr td:first-of-type a[href$=".svg"], 
-table tr td:first-of-type a[href$=".jpeg"]
-{background-image: url(/images/image.png);}
+table tr.dir td:first-of-type a {
+	background-image: url(/images/folder.png);
+}
 
-/* zips */
-table tr td:first-of-type a[href$=".zip"] 
-{background-image: url(/images/zip.png);}
+.menu {
+	float: right;
+	position: relative;
+	top: -40px;
+	right: 20px;
+}
 
-/* css */
-table tr td:first-of-type a[href$=".css"] 
-{background-image: url(/images/css.png);}
+.login-form {
+	width: 25%;
+	margin: 20px auto;
+	text-align: center;
+	padding: 10px 0;
+}
 
-/* docs */
-table tr td:first-of-type a[href$=".doc"],
-table tr td:first-of-type a[href$=".docx"],
-table tr td:first-of-type a[href$=".ppt"],
-table tr td:first-of-type a[href$=".pptx"],
-table tr td:first-of-type a[href$=".pps"],
-table tr td:first-of-type a[href$=".ppsx"],
-table tr td:first-of-type a[href$=".xls"],
-table tr td:first-of-type a[href$=".xlsx"]
-{background-image: url(/images/office.png)}
+.login-form input {
+	padding: 2px 4px;
+}
 
-/* videos */
-table tr td:first-of-type a[href$=".avi"], 
-table tr td:first-of-type a[href$=".wmv"], 
-table tr td:first-of-type a[href$=".mp4"], 
-table tr td:first-of-type a[href$=".mov"], 
-table tr td:first-of-type a[href$=".m4a"]
-{background-image: url(/images/video.png);}
+.login-form label {
+	font-weight: bold;
+}
 
-/* web pages */
-table tr td:first-of-type a[href$=".html"],
-table tr td:first-of-type a[href$=".htm"],
-table tr td:first-of-type a[href$=".xml"]
-{background-image: url(/images/xml.png);}
+.login-form__row {
+	margin-bottom: 10px;
+}
 
-table tr td:first-of-type a[href$=".php"] 
-{background-image: url(/images/php.png);}
+.error {
+	color: #c80000;
+	padding-bottom: 10px;
+}
 
-table tr td:first-of-type a[href$=".js"] 
-{background-image: url(/images/script.png);}
+a {
+	font-weight: bold;
+	color: #FE4902;
+}
 
-/* directories */
-table tr.dir td:first-of-type a
-{background-image: url(/images/folder.png);}
+a:hover {
+	text-decoration: underline;
+}
+
+.btn {
+  -webkit-border-radius: 9px;
+  -moz-border-radius: 9px;
+  border-radius: 9px;
+  text-shadow: 1px 1px 3px #bdbdbd;
+  color: #FE4902;
+  font-size: 16px;
+  background: #ffffff;
+  padding: 5px 15px;
+  border: solid #FE4902 2px;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: #FE4902;
+  text-decoration: none;
+	color: #ffffff;
+}
+
+@media (max-width: 1280px) {
+	.menu {
+		float: none;
+		top: 0;
+		right: 0;
+		text-align: center;
+		padding: 10px;
+	}
+}
+
+@media (max-width: 1280px) {
+	.login-form {
+		width: 70%;
+	}
+}
+
+@media (max-width: 800px) {
+	.login-form {
+		width: 60%;
+	}
+}
+
+@media (max-width: 600px) {
+	body {
+		padding: 0;
+		padding-top: 25px;
+	}
+
+	.login-form {
+		width: 100%;
+	}
+}

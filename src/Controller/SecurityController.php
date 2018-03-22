@@ -71,7 +71,7 @@ class SecurityController
             try {
                 $this->authenticator->authenticate($params['username'], $params['password']);
 
-                return $response->withRedirect($this->router->pathFor('document_types'));
+                return $response->withRedirect($this->router->pathFor('types'));
             } catch (AuthenticatorException $exception) {
                 $tmplParams['error'] = $exception->getMessage();
             }
@@ -92,6 +92,6 @@ class SecurityController
     {
         $this->authenticator->logout();
 
-        return $response->withRedirect($this->router->pathFor('document_types'));
+        return $response->withRedirect($this->router->pathFor('types'));
     }
 }

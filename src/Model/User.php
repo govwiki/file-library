@@ -174,6 +174,14 @@ class User implements \Serializable
     }
 
     /**
+     * @return string
+     */
+    public function getFullName(): string
+    {
+        return $this->firstName .' '. $this->lastName;
+    }
+
+    /**
      * String representation of object.
      *
      * @return string the string representation of the object or null

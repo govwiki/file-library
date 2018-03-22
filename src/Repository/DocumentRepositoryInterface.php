@@ -22,7 +22,7 @@ interface DocumentRepositoryInterface
     /**
      * Get all available document states for specified type.
      *
-     * @param string $type A document type for which we should get states.
+     * @param string $type A document type or type slug for which we should get states.
      *
      * @return string[]
      */

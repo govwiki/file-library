@@ -15,9 +15,9 @@ class Document
 {
 
     /**
-     * @var string
+     * @var Slugify|null
      */
-    private $slug;
+    private $slugify;
 
     /**
      * @var string
@@ -91,9 +91,6 @@ class Document
             ->that($fileSize, 'fileSize')->greaterThan(0)
             ->tryAll();
 
-        $slugify = new Slugify();
-
-        $this->slug = $slugify->slugify($type .'/'. $state .'/'. $year .'/'. $name);
         $this->name = $name;
         $this->type = $type;
         $this->state = $state;
@@ -109,7 +106,15 @@ class Document
      */
     public function getSlug(): string
     {
-        return $this->slug;
+        return $this->getSlugify()->slugify($this->type .'/'. $this->state .'/'. $this->year .'/'. $this->name);
+    }
+
+    /**
+     * @return string
+     */
+    public function getTypeSlug(): string
+    {
+        return $this->getSlugify()->slugify($this->type);
     }
 
     /**
@@ -283,5 +288,17 @@ class Document
         $this->uploadedBy = $uploadedBy;
 
         return $this;
+    }
+
+    /**
+     * @return Slugify
+     */
+    private function getSlugify(): Slugify
+    {
+        if ($this->slugify === null) {
+            $this->slugify = new Slugify();
+        }
+
+        return $this->slugify;
     }
 }

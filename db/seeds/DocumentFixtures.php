@@ -11,7 +11,7 @@ use Cocur\Slugify\Slugify;
 class DocumentFixtures extends AbstractSeed
 {
 
-    const DOCUMENT_COUNT = 400;
+    const DOCUMENT_COUNT = 1000;
 
     const STATES = [
         'AL',
@@ -79,6 +79,7 @@ class DocumentFixtures extends AbstractSeed
 
             $data[] = [
                 'slug' => $this->slugify->slugify($type .'/'. $state .'/'. $year .'/'. $name),
+                'type_slug' => $this->slugify->slugify($type),
                 'name' => $name,
                 'state' => $state,
                 'type' => $type,

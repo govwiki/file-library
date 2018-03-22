@@ -17,18 +17,24 @@ class DocumentPDORepository extends AbstractPDORepository implements DocumentRep
      * Get all available document repositories.
      *
      * @return string[]
+     * @psalm-return array<string, string>
      * @psalm-suppress MoreSpecificReturnType
      */
     public function getTypes(): array
     {
         $stmt = $this->execute('
-            SELECT type FROM documents
-            GROUP BY type
+            SELECT type, type_slug FROM documents
+            GROUP BY type, type_slug
             ORDER BY type
         ');
 
-        /** @psalm-suppress LessSpecificReturnStatement */
-        return array_map('current', $stmt->fetchAll(\PDO::FETCH_ASSOC));
+        $types = [];
+        /** @var array{type: string, type_slug: string} $row */
+        foreach ($stmt->fetchAll() as $row) {
+            $types[$row['type_slug']] = $row['type'];
+        }
+
+        return $types;
     }
 
     /**
@@ -44,7 +50,8 @@ class DocumentPDORepository extends AbstractPDORepository implements DocumentRep
         $stmt = $this->execute('
             SELECT state FROM documents
             WHERE
-                type = :type
+                type = :type OR
+                type_slug = :type
             GROUP BY state
             ORDER BY state
         ', [
@@ -56,8 +63,8 @@ class DocumentPDORepository extends AbstractPDORepository implements DocumentRep
     }
 
     /**
-     * @param string $type  A document type for which we should get years.
-     * @param string $state A document state for which we should get years.
+     * @param string $type  A document type or slug for which we should get years.
+     * @param string $state A document state or slug for which we should get years.
      *
      * @return integer[]
      * @psalm-suppress MoreSpecificReturnType
@@ -67,7 +74,10 @@ class DocumentPDORepository extends AbstractPDORepository implements DocumentRep
         $stmt = $this->execute('
             SELECT year FROM documents
             WHERE
-                type = :type AND
+                (
+                    type = :type OR
+                    type_slug = :type
+                ) AND
                 state = :state
             GROUP BY year
             ORDER BY year
@@ -92,7 +102,10 @@ class DocumentPDORepository extends AbstractPDORepository implements DocumentRep
         $stmt = $this->execute('
             SELECT * FROM documents
             WHERE
-                type = :type AND
+                (
+                    type = :type OR
+                    type_slug = :type
+                ) AND
                 state = :state AND
                 year = :year
             ORDER BY name
@@ -167,11 +180,12 @@ class DocumentPDORepository extends AbstractPDORepository implements DocumentRep
                 $sql = sprintf(
                     '
                         INSERT IGNORE INTO documents
-                        (slug, name, type, state, year, path, file_size, uploaded_at, uploaded_by_id)
+                        (slug, type_slug, name, type, state, year, path, file_size, uploaded_at, uploaded_by_id)
                         VALUES
-                        (%s, %s, %s, %s, %d, %s, %d, %s, %s)
+                        (%s, %s, %s, %s, %s, %d, %s, %d, %s, %s)
                     ',
                     $this->pdo->quote($document->getSlug()),
+                    $this->pdo->quote($document->getTypeSlug()),
                     $this->pdo->quote($document->getName()),
                     $this->pdo->quote($document->getType()),
                     $this->pdo->quote($document->getState()),

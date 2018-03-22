@@ -41,6 +41,7 @@ class SetupSchema extends AbstractMigration
 
         $this->table('documents', [ 'id' => false, 'primary_key' => 'path' ])
             ->addColumn('slug', 'string')
+            ->addColumn('type_slug', 'string')
             ->addColumn('name', 'string')
             ->addColumn('type', 'string')
             ->addColumn('state', 'string', [ 'limit' => 2 ])

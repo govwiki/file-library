@@ -9,6 +9,7 @@ use App\Service\Authenticator\AuthenticatorInterface;
 use Dotenv\Dotenv;
 use Slim\App;
 use Slim\Middleware\Session;
+use Slim\Views\Twig;
 
 /**
  * Class AppFactory
@@ -61,6 +62,10 @@ class AppFactory
 
         /** @var AuthenticatorInterface $authenticator */
         $authenticator = $container->get(AuthenticatorInterface::class);
+
+        /** @var Twig $view */
+        $view = $container->get('view');
+
         /** @var array{session: array} $settings */
         $settings = $container->get('settings');
 
@@ -69,7 +74,7 @@ class AppFactory
         }
 
         return $app
-            ->add(new AuthenticationMiddleware($authenticator))
+            ->add(new AuthenticationMiddleware($authenticator, $view))
             ->add(new Session($settings['session']));
     }
 
