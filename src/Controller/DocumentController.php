@@ -117,7 +117,6 @@ class DocumentController extends AbstractController
             'type' => $type,
             'state' => $state,
             'year' => $year,
-            'documents' => $this->repository->getDocuments($type, $state, $year),
         ]);
     }
 
