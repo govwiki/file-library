@@ -61,7 +61,7 @@ class Document implements \JsonSerializable
     /**
      * @var string
      *
-     * @ORM\Column
+     * @ORM\Column(type="binary")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="NONE")
      */
