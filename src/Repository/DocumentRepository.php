@@ -135,8 +135,7 @@ class DocumentRepository extends EntityRepository implements DocumentRepositoryI
      * @param integer  $offset Offset from start of documents.
      * @param integer  $limit  Required documents per response.
      *
-     * @return Document[]
-     * @psalm-suppress MoreSpecificReturnType
+     * @return DocumentCollection
      */
     public function getDocuments(
         string $type,
@@ -145,7 +144,7 @@ class DocumentRepository extends EntityRepository implements DocumentRepositoryI
         array $order = [],
         int $offset = 0,
         int $limit = null
-    ): array {
+    ): DocumentCollection {
         $qb = $this->createQueryBuilder('Document')
             ->where('
                 (
@@ -170,14 +169,20 @@ class DocumentRepository extends EntityRepository implements DocumentRepositoryI
             $qb->addOrderBy('Document.'. $property, $dir);
         }
 
+        $countQb = clone $qb;
+
+        $totalCount = null;
         if ($limit !== null) {
+            $totalCount = (int) $countQb
+                ->select('COUNT(Document.id)')
+                ->getQuery()
+                ->getSingleScalarResult();
             $qb->setMaxResults($limit);
         }
 
-        /** @psalm-suppress LessSpecificReturnStatement */
-        return $qb
-            ->getQuery()
-            ->getResult();
+        $documents = $qb->getQuery()->getResult();
+
+        return new DocumentCollection($documents, $totalCount ?? count($documents));
     }
 
     /**

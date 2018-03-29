@@ -53,7 +53,7 @@ interface DocumentRepositoryInterface
      * @param integer  $offset Offset from start of documents.
      * @param integer  $limit  Required documents per response.
      *
-     * @return Document[]
+     * @return DocumentCollection
      */
     public function getDocuments(
         string $type,
@@ -62,7 +62,7 @@ interface DocumentRepositoryInterface
         array $order = [],
         int $offset = 0,
         int $limit = null
-    ): array;
+    ): DocumentCollection;
 
     /**
      * @param string $slug A Document slug.
