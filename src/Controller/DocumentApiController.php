@@ -58,7 +58,7 @@ class DocumentApiController extends AbstractController
         /** @var array{draw: string, order: string[], offset: int, limit: int} $params */
         $params = $request->getQueryParams();
 
-        $documents = $this->repository->getDocuments($type, $state, $year, $params['order']);
+        $documents = $this->repository->getDocuments($type, $state, $year, $params['order'], $params['offset'], $params['limit']);
         $documentsCount = count($documents);
 
         return $response->withJson([
