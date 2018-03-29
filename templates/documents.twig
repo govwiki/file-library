@@ -1,33 +1,74 @@
 {% extends 'layout.twig' %}
 
+{% block breadcrumb %}
+    <li><a href="{{ path_for('types') }}">Document types</a></li>
+    <li><a href="{{ path_for('states', { type: type }) }}">{{- type|prettyTypeName -}}</a></li>
+    <li><a href="{{ path_for('years', { type: type, state: state }) }}">{{- state|prettyStateName -}}</a></li>
+    <li>{{ year }}</li>
+{% endblock breadcrumb %}
+
 {% block main %}
-    <table class="sortable">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>File Size</th>
-                {%- if user is defined -%}
-                    <th>Actions</th>
-                {%- endif -%}
-            </tr>
-        </thead>
-        <tbody>
-            {%- for document in documents -%}
-                <tr class="file">
-                    <td><a href="{{ path_for('document', { slug: document.slug }) }}">{{- document.name -}}</a></td>
-                    <td>{{- document.fileSize|prettyFileSize -}}</td>
-                    {%- if user is defined -%}
-                        <td>
-                            <a href="#">Remove</a>
-                        </td>
-                    {%- endif -%}
-                </tr>
-            {%- endfor -%}
-        </tbody>
+    <table id="documents-table" data-source="{{- path_for('api_documents', {
+        type: type,
+        state: state,
+        year: year
+    }) -}}">
+    <thead>
+    </thead>
     </table>
+
     {%- if user is defined -%}
         <div style="text-align: center">
-            <button class="btn">Add new document</button>
+            <button id="document-add" class="btn">Add new document</button>
         </div>
+
+        {%- embed './Partial/modal.twig' with {
+            id: 'document-rename-modal',
+            title: 'Rename document'
+        } -%}
+            {% block content %}
+                <form id="rename-form">
+                    <div>
+                        <input id="document-name" class="form-control" name="name">
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-borderless" data-modal-close>Cancel</button>
+                        <button type="submit" class="btn">Rename</button>
+                    </div>
+                </form>
+            {% endblock content %}
+        {%- endembed -%}
+
+        {%- embed './Partial/modal.twig' with {
+            id: 'document-add-modal',
+            title: 'Add new document'
+        } -%}
+            {% block content %}
+                <form id="upload-form">
+                    <div>
+                        <input type="file" id="document-file" class="form-control" name="file">
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-borderless" data-modal-close>Cancel</button>
+                        <button type="submit" class="btn">Add</button>
+                    </div>
+                </form>
+            {% endblock content %}
+        {%- endembed -%}
     {%- endif -%}
 {% endblock main %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        window.documents = {
+          showActions: {{ user is defined ? 'true' : 'false' }},
+          type: '{{ type }}',
+          state: '{{ state }}',
+          year: '{{ year }}'
+        };
+    </script>
+    <script src="/documents.js"></script>
+{% endblock javascripts %}

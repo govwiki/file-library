@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Model\User;
+use App\Entity\User;
 
 /**
  * Interface UserRepositoryInterface

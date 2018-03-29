@@ -1,61 +1,91 @@
 <?php
 
-namespace App\Model;
+namespace App\Entity;
 
 use Assert\Assert;
 use Assert\Assertion;
-use Cocur\Slugify\Slugify;
+use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Class Document
  *
- * @package App\Model
+ * @ORM\Entity(repositoryClass="App\Repository\DocumentRepository")
+ *
+ * @package App\Entity
  */
-class Document
+class Document implements \JsonSerializable
 {
 
     /**
-     * @var Slugify|null
-     */
-    private $slugify;
-
-    /**
      * @var string
+     *
+     * @ORM\Column
      */
     private $name;
 
     /**
      * @var string
+     *
+     * @ORM\Column
+     */
+    private $slug;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column
      */
     private $type;
 
     /**
      * @var string
+     *
+     * @ORM\Column
+     */
+    private $typeSlug;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(length=2)
      */
     private $state;
 
     /**
      * @var integer
+     *
+     * @ORM\Column(type="integer")
      */
     private $year;
 
     /**
      * @var string
+     *
+     * @ORM\Column
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="NONE")
      */
     private $path;
 
     /**
      * @var integer
+     *
+     * @ORM\Column(type="integer")
      */
     private $fileSize;
 
     /**
      * @var \DateTime
+     *
+     * @ORM\Column(type="datetime")
      */
     private $uploadedAt;
 
     /**
      * @var User|null
+     *
+     * @ORM\ManyToOne(targetEntity="App\Entity\User")
+     * @ORM\JoinColumn(referencedColumnName="username")
      */
     private $uploadedBy;
 
@@ -63,16 +93,22 @@ class Document
      * Document constructor.
      *
      * @param string    $name       Full document name.
+     * @param string    $slug       Slug for document path.
      * @param string    $type       Document type.
-     * @param string    $state      For which state this document contains information.
-     * @param integer   $year       For which year this document contains information.
+     * @param string    $typeSlug   Slug for document type.
+     * @param string    $state      For which state this document contains
+     *                              information.
+     * @param integer   $year       For which year this document contains
+     *                              information.
      * @param string    $path       Path do document file.
      * @param integer   $fileSize   File size in bytes.
      * @param User|null $uploadedBy Who upload this document.
      */
     public function __construct(
         string $name,
+        string $slug,
         string $type,
+        string $typeSlug,
         string $state,
         int $year,
         string $path,
@@ -84,7 +120,9 @@ class Document
         /** @psalm-suppress MixedMethodCall */
         Assert::lazy()
             ->that($name, 'name')->notBlank()->maxLength(255)
+            ->that($slug, 'slug')->notBlank()->maxLength(255)
             ->that($type, 'type')->notBlank()->maxLength(255)
+            ->that($typeSlug, 'typeSlug')->notBlank()->maxLength(255)
             ->that($state, 'state')->notBlank()->length(2)
             ->that($year, 'year')->greaterThan(0)
             ->that($path, 'year')->notBlank()->maxLength(255)
@@ -92,29 +130,15 @@ class Document
             ->tryAll();
 
         $this->name = $name;
+        $this->slug = $slug;
         $this->type = $type;
+        $this->typeSlug = $typeSlug;
         $this->state = $state;
         $this->year = $year;
         $this->path = $path;
         $this->fileSize = $fileSize;
-        $this->uploadedAt = new \DateTime();
         $this->uploadedBy = $uploadedBy;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSlug(): string
-    {
-        return $this->getSlugify()->slugify($this->type .'/'. $this->state .'/'. $this->year .'/'. $this->name);
-    }
-
-    /**
-     * @return string
-     */
-    public function getTypeSlug(): string
-    {
-        return $this->getSlugify()->slugify($this->type);
+        $this->uploadedAt = new \DateTime();
     }
 
     /**
@@ -142,6 +166,26 @@ class Document
     /**
      * @return string
      */
+    public function getSlug(): string
+    {
+        return $this->slug;
+    }
+
+    /**
+     * @param string $slug A new name slug.
+     *
+     * @return $this
+     */
+    public function setSlug(string $slug)
+    {
+        $this->slug = $slug;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
     public function getType(): string
     {
         return $this->type;
@@ -157,6 +201,26 @@ class Document
         /** @psalm-suppress MixedMethodCall */
         Assert::that($type)->notBlank()->maxLength(255);
         $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTypeSlug(): string
+    {
+        return $this->typeSlug;
+    }
+
+    /**
+     * @param string $typeSlug A new type slug.
+     *
+     * @return $this
+     */
+    public function setTypeSlug(string $typeSlug)
+    {
+        $this->typeSlug = $typeSlug;
 
         return $this;
     }
@@ -291,14 +355,19 @@ class Document
     }
 
     /**
-     * @return Slugify
+     * Specify data which should be serialized to JSON.
+     *
+     * @return array
      */
-    private function getSlugify(): Slugify
+    public function jsonSerialize(): array
     {
-        if ($this->slugify === null) {
-            $this->slugify = new Slugify();
-        }
-
-        return $this->slugify;
+        return [
+            'slug' => $this->slug,
+            'name' => $this->name,
+            'type' => $this->type,
+            'state' => $this->state,
+            'year' => $this->year,
+            'fileSize' => $this->fileSize,
+        ];
     }
 }

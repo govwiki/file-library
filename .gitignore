@@ -2,7 +2,7 @@
 /.idea
 /.env
 
-/vendor/
+/vendor
 /phinx.yml
 
 /docker/db

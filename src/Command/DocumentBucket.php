@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Model\Document;
+use App\Entity\Document;
 use App\Repository\DocumentRepositoryInterface;
 
 /**

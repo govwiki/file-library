@@ -1,39 +1,47 @@
 <?php
 
-namespace App\Model;
+namespace App\Entity;
 
 use Assert\Assert;
+use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Class User
  *
- * @package App\Model
+ * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
+ *
+ * @package App\Entity
  */
 class User implements \Serializable
 {
 
     /**
-     * @var integer|null
-     */
-    private $id;
-
-    /**
      * @var string
+     *
+     * @ORM\Column
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="NONE")
      */
     private $username;
 
     /**
      * @var string
+     *
+     * @ORM\Column
      */
     private $password;
 
     /**
      * @var string
+     *
+     * @ORM\Column
      */
     private $firstName;
 
     /**
      * @var string
+     *
+     * @ORM\Column
      */
     private $lastName;
 
@@ -63,14 +71,6 @@ class User implements \Serializable
         $this->password = password_hash($plainPassword, PASSWORD_BCRYPT);
         $this->firstName = $firstName;
         $this->lastName = $lastName;
-    }
-
-    /**
-     * @return integer|null
-     */
-    public function getId()
-    {
-        return $this->id;
     }
 
     /**
@@ -189,7 +189,6 @@ class User implements \Serializable
     public function serialize(): string
     {
         return serialize([
-            $this->id,
             $this->username,
             $this->firstName,
             $this->lastName,
@@ -217,12 +216,10 @@ class User implements \Serializable
         }
 
         /** @psalm-suppress MixedArrayAccess */
-        $this->id = (int) $data[0];
+        $this->username = (string) $data[0];
         /** @psalm-suppress MixedArrayAccess */
-        $this->username = (string) $data[1];
+        $this->firstName = (string) $data[1];
         /** @psalm-suppress MixedArrayAccess */
-        $this->firstName = (string) $data[2];
-        /** @psalm-suppress MixedArrayAccess */
-        $this->lastName = (string) $data[3];
+        $this->lastName = (string) $data[2];
     }
 }

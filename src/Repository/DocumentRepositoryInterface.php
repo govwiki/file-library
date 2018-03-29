@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Model\Document;
+use App\Entity\Document;
 
 /**
  * Interface DocumentRepositoryInterface
@@ -18,6 +18,15 @@ interface DocumentRepositoryInterface
      * @return string[]
      */
     public function getTypes(): array;
+
+    /**
+     * Get document type by type slug.
+     *
+     * @param string $typeSlug Required type slug.
+     *
+     * @return string
+     */
+    public function getTypeByTypeSlug(string $typeSlug): string;
 
     /**
      * Get all available document states for specified type.
@@ -37,20 +46,30 @@ interface DocumentRepositoryInterface
     public function getYears(string $type, string $state): array;
 
     /**
-     * @param string $type  A document type for which we should get documents.
-     * @param string $state A document state for which we should get documents.
-     * @param string $year  A document year for which we should get documents.
+     * @param string   $type   A document type for which we should get documents.
+     * @param string   $state  A document state for which we should get documents.
+     * @param string   $year   A document year for which we should get documents.
+     * @param string[] $order  In which order document should fetching.
+     * @param integer  $offset Offset from start of documents.
+     * @param integer  $limit  Required documents per response.
      *
      * @return Document[]
      */
-    public function getDocuments(string $type, string $state, string $year): array;
+    public function getDocuments(
+        string $type,
+        string $state,
+        string $year,
+        array $order = [],
+        int $offset = 0,
+        int $limit = null
+    ): array;
 
     /**
      * @param string $slug A Document slug.
      *
-     * @return Document
+     * @return Document|null
      */
-    public function getBySlug(string $slug): Document;
+    public function getBySlug(string $slug);
 
     /**
      * Save passed document or documents into storage.
@@ -61,4 +80,11 @@ interface DocumentRepositoryInterface
      * @return void
      */
     public function save($documents);
+
+    /**
+     * @param Document $document A removed document.
+     *
+     * @return void
+     */
+    public function remove(Document $document);
 }

@@ -15,6 +15,37 @@ $dotenv->load();
 $console = new \Symfony\Component\Console\Application();
 $container = \App\Kernel\ContainerFactory::create(ROOT_PATH, getenv('DEBUG'));
 
-$console->add(new \App\Command\IndexCommand($container->get(\App\Repository\DocumentRepositoryInterface::class)));
+/** @var \Doctrine\ORM\EntityManagerInterface $em */
+$em = $container->get('em');
+
+$migrationConfiguration = new \Doctrine\DBAL\Migrations\Configuration\Configuration(
+    $em->getConnection()
+);
+$migrationConfiguration->setMigrationsDirectory(ROOT_PATH . '/db/migrations');
+$migrationConfiguration->setMigrationsNamespace('Migrations');
+
+$console->setHelperSet(new \Symfony\Component\Console\Helper\HelperSet([
+    'entityManager' => new \Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper($em),
+    'configuration' => new \Doctrine\DBAL\Migrations\Tools\Console\Helper\ConfigurationHelper(
+        $em->getConnection(),
+        $migrationConfiguration
+    ),
+    'dialog' => new \Symfony\Component\Console\Helper\QuestionHelper(),
+]));
+
+$console->addCommands([
+    new \App\Command\IndexCommand(
+        $container->get(\App\Repository\DocumentRepositoryInterface::class),
+        $container->get(\App\Entity\DocumentFactory::class)
+    ),
+    new \App\Command\FixtureCommand($em, ROOT_PATH . '/db/fixtures'),
+
+    new \Doctrine\DBAL\Migrations\Tools\Console\Command\DiffCommand(),
+    new \Doctrine\DBAL\Migrations\Tools\Console\Command\ExecuteCommand(),
+    new \Doctrine\DBAL\Migrations\Tools\Console\Command\GenerateCommand(),
+    new \Doctrine\DBAL\Migrations\Tools\Console\Command\MigrateCommand(),
+    new \Doctrine\DBAL\Migrations\Tools\Console\Command\StatusCommand(),
+    new \Doctrine\DBAL\Migrations\Tools\Console\Command\VersionCommand(),
+]);
 
 $console->run();

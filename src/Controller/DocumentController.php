@@ -15,7 +15,7 @@ use Slim\Views\Twig;
  *
  * @package App\Controller
  */
-class DocumentController
+class DocumentController extends AbstractController
 {
 
     /**
@@ -135,7 +135,7 @@ class DocumentController
         $slug = $this->getArgument($args, 'slug');
         $document = $this->repository->getBySlug($slug);
 
-        if (! is_readable($document->getPath())) {
+        if (($document === null) || ! is_readable($document->getPath())) {
             throw new NotFoundException($request, $response);
         }
 
@@ -157,36 +157,5 @@ class DocumentController
             ->withHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
             ->withHeader('Pragma', 'public')
             ->withBody(new Stream($file));
-    }
-
-    /**
-     * @param array  $args A array of arguments.
-     * @param string $name A required argument name.
-     *
-     * @return string
-     *
-     * @throws \InvalidArgumentException If required parameter not found.
-     */
-    private function getArgument(array $args, string $name): string
-    {
-        if (! isset($args[$name])) {
-            throw new \InvalidArgumentException(sprintf(
-                'Can\'t find required parameter "%s"',
-                $name
-            ));
-        }
-
-        /** @psalm-suppress MixedAssignment */
-        $argument = $args[$name];
-
-        if (! is_string($argument)) {
-            throw new \InvalidArgumentException(sprintf(
-                'Parameter "%s" should be string',
-                $name
-            ));
-        }
-
-        /** @psalm-suppress MixedReturnStatement */
-        return $argument;
     }
 }

@@ -6,6 +6,8 @@
     <title>CAFRS and Single Audits for US Governments and Non-Profits</title>
 
     {%- block stylesheets -%}
+        <link rel="stylesheet" href="//cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="/style.css">
     {%- endblock stylesheets -%}
 </head>
@@ -23,8 +25,20 @@
         </div>
     </header>
     <main>
-       {%- block main %}{% endblock main -%}
+        {%- if block('breadcrumb') is defined -%}
+            <ul class="breadcrumb">
+                {{ block('breadcrumb')|raw }}
+            </ul>
+        {%- endif -%}
+        {%- block main %}{% endblock main -%}
     </main>
-{%- block javascripts %}{% endblock javascripts -%}
+
+    {%- block javascripts %}
+        <script
+                src="https://code.jquery.com/jquery-3.3.1.min.js"
+                integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+                crossorigin="anonymous"></script>
+        <script src="//cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    {% endblock javascripts -%}
 </body>
 </html>

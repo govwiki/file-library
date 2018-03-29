@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Model\Document;
+use App\Entity\DocumentFactory;
 use App\Repository\DocumentRepositoryInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -28,17 +28,26 @@ class IndexCommand extends Command
     private $repository;
 
     /**
+     * @var DocumentFactory
+     */
+    private $factory;
+
+    /**
      * IndexCommand constructor.
      *
      * @param DocumentRepositoryInterface $repository A
      *                                                DocumentRepositoryInterface
      *                                                instance.
+     * @param DocumentFactory             $factory    A DocumentFactory instance.
      */
-    public function __construct(DocumentRepositoryInterface $repository)
-    {
+    public function __construct(
+        DocumentRepositoryInterface $repository,
+        DocumentFactory $factory
+    ) {
         parent::__construct(self::NAME);
 
         $this->repository = $repository;
+        $this->factory = $factory;
     }
 
     /**
@@ -142,7 +151,7 @@ class IndexCommand extends Command
 
                         $output->writeln(sprintf('        Add document <comment>"%s"</comment>', $name));
 
-                        $bucket->attach(new Document(
+                        $bucket->attach($this->factory->createDocument(
                             $name,
                             $type,
                             $state,

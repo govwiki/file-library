@@ -2,7 +2,7 @@
 
 namespace App\Service\Authenticator;
 
-use App\Model\User;
+use App\Entity\User;
 
 /**
  * Interface AuthenticatorInterface

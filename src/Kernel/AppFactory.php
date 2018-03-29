@@ -2,6 +2,7 @@
 
 namespace App\Kernel;
 
+use App\Controller\DocumentApiController;
 use App\Controller\DocumentController;
 use App\Controller\SecurityController;
 use App\Middleware\AuthenticationMiddleware;
@@ -87,6 +88,11 @@ class AppFactory
     {
         $app->map([ 'GET', 'POST' ], '/login', SecurityController::class .':login')->setName('login');
         $app->get('/logout', SecurityController::class .':logout')->setName('logout');
+
+        $app->get('/api/documents/{type}/{state}/{year}', DocumentApiController::class . ':documents')->setName('api_documents');
+        $app->post('/api/documents/{type}/{state}/{year}', DocumentApiController::class . ':upload')->setName('api_document_upload');
+        $app->post('/api/documents/{slug}/rename', DocumentApiController::class . ':rename')->setName('api_document_rename');
+        $app->post('/api/documents/{slug}/remove', DocumentApiController::class . ':remove')->setName('api_document_remove');
 
         $app->get('/', DocumentController::class . ':types')->setName('types');
         $app->get('/download/{slug}', DocumentController::class . ':document')->setName('document');

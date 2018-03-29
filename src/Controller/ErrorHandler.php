@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Action;
+namespace App\Controller;
 
 use Psr\Http\Message\ResponseInterface;
 use Slim\Http\Request;
@@ -10,7 +10,7 @@ use Slim\Views\Twig;
 /**
  * Class ErrorAction
  *
- * @package App\Action
+ * @package App\Controller
  */
 class ErrorHandler
 {

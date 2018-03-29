@@ -1,5 +1,10 @@
 {% extends 'layout.twig' %}
 
+{% block breadcrumb %}
+    <li><a href="{{ path_for('types') }}">Document types</a></li>
+    <li>{{- type|prettyTypeName -}}</li>
+{% endblock breadcrumb %}
+
 {% block main %}
     <table class="sortable">
         <thead>
@@ -10,7 +15,7 @@
         <tbody>
             {%- for state in states -%}
                 <tr class="dir">
-                    <td><a href="{{ path_for('years', { type: type, state: state }) }}">{{- state -}}</a></td>
+                    <td><a href="{{ path_for('years', { type: type, state: state }) }}">{{- state|prettyStateName -}}</a></td>
                 </tr>
             {%- endfor -%}
         </tbody>
