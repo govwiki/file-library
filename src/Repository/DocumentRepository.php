@@ -154,7 +154,6 @@ class DocumentRepository extends EntityRepository implements DocumentRepositoryI
                 AND Document.state = :state
                 AND Document.year = :year
             ')
-            ->setFirstResult($offset)
             ->setParameters(new ArrayCollection([
                 new Parameter('type', $type),
                 new Parameter('state', $state),
@@ -169,18 +168,18 @@ class DocumentRepository extends EntityRepository implements DocumentRepositoryI
             $qb->addOrderBy('Document.'. $property, $dir);
         }
 
-        $countQb = clone $qb;
-
         $totalCount = null;
         if ($limit !== null) {
+            $countQb = clone $qb;
             $totalCount = (int) $countQb
                 ->select('COUNT(Document.id)')
                 ->getQuery()
                 ->getSingleScalarResult();
+
             $qb->setMaxResults($limit);
         }
 
-        $documents = $qb->getQuery()->getResult();
+        $documents = $qb->getQuery()->setFirstResult($offset)->getResult();
 
         return new DocumentCollection($documents, $totalCount ?? count($documents));
     }
