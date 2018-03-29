@@ -17,6 +17,15 @@ class Document implements \JsonSerializable
 {
 
     /**
+     * @var integer|null
+     *
+     * @ORM\Column(type="bigint")
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
+    private $id;
+
+    /**
      * @var string
      *
      * @ORM\Column
@@ -61,9 +70,7 @@ class Document implements \JsonSerializable
     /**
      * @var string
      *
-     * @ORM\Column(type="binary")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="NONE")
+     * @ORM\Column(type="text")
      */
     private $path;
 
@@ -125,7 +132,7 @@ class Document implements \JsonSerializable
             ->that($typeSlug, 'typeSlug')->notBlank()->maxLength(255)
             ->that($state, 'state')->notBlank()->length(2)
             ->that($year, 'year')->greaterThan(0)
-            ->that($path, 'year')->notBlank()->maxLength(255)
+            ->that($path, 'path')->notBlank()
             ->that($fileSize, 'fileSize')->greaterThan(0)
             ->tryAll();
 
@@ -139,6 +146,14 @@ class Document implements \JsonSerializable
         $this->fileSize = $fileSize;
         $this->uploadedBy = $uploadedBy;
         $this->uploadedAt = new \DateTime();
+    }
+
+    /**
+     * @return integer|null
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 
     /**
