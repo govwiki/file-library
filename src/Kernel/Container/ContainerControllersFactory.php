@@ -33,13 +33,13 @@ class ContainerControllersFactory
         if ($container['settings']['debug'] === false) {
             $container['errorHandler'] = function (ContainerInterface $container): ErrorHandler {
                 /** @var Twig $renderer */
-                $renderer = $container->get(Twig::class);
+                $renderer = $container->get('view');
 
                 return new ErrorHandler($renderer, 'error');
             };
             $container['notFoundHandler'] = function (ContainerInterface $container): ErrorHandler {
                 /** @var Twig $renderer */
-                $renderer = $container->get(Twig::class);
+                $renderer = $container->get('view');
 
                 return new ErrorHandler($renderer, 'error');
             };
