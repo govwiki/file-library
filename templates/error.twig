@@ -46,7 +46,7 @@
 
 {% block main %}
     <div class="content">
-        {%- if type is 'not_found' -%}
+        {%- if type == 'not_found' -%}
             <h1>Sorry, but requested resource not found!</h1>
         {%- else -%}
             <h1>Sorry, but that's an error!</h1>
