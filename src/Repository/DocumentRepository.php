@@ -220,7 +220,7 @@ class DocumentRepository extends EntityRepository implements DocumentRepositoryI
         $this->_em->transactional(function (EntityManagerInterface $em) use ($documents) {
             /** @var Document $document */
             foreach ($documents as $document) {
-                $em->merge($document);
+                $em->persist($document);
             }
         });
     }
