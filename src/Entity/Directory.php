@@ -7,13 +7,13 @@ use Assert\Assertion;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Class Document
+ * Class Directory
  *
  * @ORM\Entity(repositoryClass="App\Repository\DocumentRepository")
  *
  * @package App\Entity
  */
-class Document implements \JsonSerializable
+class Directory implements \JsonSerializable
 {
 
     /**
@@ -40,46 +40,28 @@ class Document implements \JsonSerializable
     private $slug;
 
     /**
-     * @var integer
-     *
-     * @ORM\Column(type="integer")
-     */
-    private $fileSize;
-
-    /**
      * @var \DateTime
-     *
-     * @ORM\Column(type="datetime")
      */
     private $createdAt;
 
     /**
-     * @var
-     */
-    private $direcotry;
-
-    /**
      * Document constructor.
      *
-     * @param string  $name     Full document name.
-     * @param string  $slug     Slug for document path.
-     * @param integer $fileSize File size in bytes.
+     * @param string $name Directory name.
+     * @param string $slug Slug for document name.
      */
     public function __construct(
         string $name,
-        string $slug,
-        int $fileSize
+        string $slug
     ) {
         /** @psalm-suppress MixedMethodCall */
         Assert::lazy()
             ->that($name, 'name')->notBlank()->maxLength(255)
             ->that($slug, 'slug')->notBlank()->maxLength(255)
-            ->that($fileSize, 'fileSize')->greaterThan(0)
             ->tryAll();
 
         $this->name = $name;
         $this->slug = $slug;
-        $this->fileSize = $fileSize;
         $this->createdAt = new \DateTime();
     }
 
@@ -134,27 +116,6 @@ class Document implements \JsonSerializable
     }
 
     /**
-     * @return integer
-     */
-    public function getFileSize(): int
-    {
-        return $this->fileSize;
-    }
-
-    /**
-     * @param integer $fileSize Document file size in bytes.
-     *
-     * @return $this
-     */
-    public function setFileSize(int $fileSize)
-    {
-        Assertion::greaterThan($fileSize, 0);
-        $this->fileSize = $fileSize;
-
-        return $this;
-    }
-
-    /**
      * @return \DateTime
      */
     public function getCreatedAt(): \DateTime
@@ -163,7 +124,7 @@ class Document implements \JsonSerializable
     }
 
     /**
-     * @param \DateTime $createdAt When document is created.
+     * @param \DateTime $createdAt When this directory is created.
      *
      * @return $this
      */
@@ -185,7 +146,6 @@ class Document implements \JsonSerializable
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'fileSize' => $this->fileSize,
             'createdAt' => $this->createdAt->format('c'),
         ];
     }
