@@ -10,7 +10,7 @@
   $(function () {
     var columns = [
       {
-        title: 'Document',
+        title: 'File',
         data: 'name',
         className: 'document--field__name'
       },
@@ -19,6 +19,10 @@
         data: 'fileSize',
         className: 'document--field__file-size',
         render: function (fileSize) {
+          if (fileSize === null) {
+            return '';
+          }
+
           var nextPrettyFileSize = fileSize;
           var postfixIdx = 0;
           var prettyFileSize = 0;
@@ -112,7 +116,8 @@
     $table.on('click', 'tbody tr', function (event) {
       event.stopPropagation();
 
-      window.location = '/download/' + event.currentTarget.dataset.slug;
+      var data = dtTable.row($(this).closest('tr')).data();
+      window.location = '/' + data.slug;
     });
 
     $table.on('click', '.document--action__rename', function (event) {
@@ -132,7 +137,10 @@
 
       var data = dtTable.row($(this).closest('tr')).data();
       if (confirm('Remove document "'+ data.name +'"')) {
-        api({ url: '/api/documents/' + data.slug +'/remove' }).then(function () { dtTable.draw() });
+        api({
+          url: '/files/' + data.slug,
+          method: 'DELETE'
+        }).then(function () { dtTable.draw() });
       }
     });
 
@@ -169,7 +177,7 @@
   function api(cfg) {
     var _cfg = $.extend({
       type: 'POST'
-    }, cfg)
+    }, cfg);
 
     return $.ajax(_cfg).fail(function (xhr) { console.log(JSON.parse(xhr.responseText)) })
   }

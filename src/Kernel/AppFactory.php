@@ -2,9 +2,6 @@
 
 namespace App\Kernel;
 
-use App\Controller\DocumentApiController;
-use App\Controller\DocumentController;
-use App\Controller\SecurityController;
 use App\Middleware\AuthenticationMiddleware;
 use App\Service\Authenticator\AuthenticatorInterface;
 use Dotenv\Dotenv;
@@ -47,7 +44,7 @@ class AppFactory
         $app = new App($container);
 
         $app = self::registerMiddlewares($app);
-        $app = self::registerRoutes($app);
+        $app = Routes::registerRoutes($app);
 
         return $app;
     }
@@ -77,29 +74,5 @@ class AppFactory
         return $app
             ->add(new AuthenticationMiddleware($authenticator, $view))
             ->add(new Session($settings['session']));
-    }
-
-    /**
-     * @param App $app A slim application instance.
-     *
-     * @return App
-     */
-    private static function registerRoutes(App $app): App
-    {
-        $app->map([ 'GET', 'POST' ], '/login', SecurityController::class .':login')->setName('login');
-        $app->get('/logout', SecurityController::class .':logout')->setName('logout');
-
-        $app->get('/api/documents/{type}/{state}/{year}', DocumentApiController::class . ':documents')->setName('api_documents');
-        $app->post('/api/documents/{type}/{state}/{year}', DocumentApiController::class . ':upload')->setName('api_document_upload');
-        $app->post('/api/documents/{slug}/rename', DocumentApiController::class . ':rename')->setName('api_document_rename');
-        $app->post('/api/documents/{slug}/remove', DocumentApiController::class . ':remove')->setName('api_document_remove');
-
-        $app->get('/', DocumentController::class . ':types')->setName('types');
-        $app->get('/download/{slug}', DocumentController::class . ':document')->setName('document');
-        $app->get('/{type}', DocumentController::class .':states')->setName('states');
-        $app->get('/{type}/{state}', DocumentController::class . ':years')->setName('years');
-        $app->get('/{type}/{state}/{year}', DocumentController::class . ':documents')->setName('documents');
-
-        return $app;
     }
 }

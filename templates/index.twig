@@ -1,0 +1,25 @@
+{% extends 'layout.twig' %}
+
+{% block breadcrumb %}
+    {{- currentDir|directoryBreadcrumb -}}
+{% endblock breadcrumb %}
+
+{% block main %}
+    <table id="documents-table" data-source="{{-
+        (currentDir is not null) ? path_for('files', { slug: currentDir.slug }) : path_for('files-root')
+    -}}">
+        <thead>
+        </thead>
+    </table>
+
+{% endblock main %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+      window.documents = {
+        showActions: {{ user is defined ? 'true' : 'false' }}
+      };
+    </script>
+    <script src="/documents.js"></script>
+{% endblock javascripts %}

@@ -1,0 +1,7 @@
+<ul class="breadcrumb">
+  {%- for name, slug in data -%}
+      <li>
+        <a href="{{ path_for('index', { slug: slug }) }}">{{ name }}</a>
+      </li>
+  {%- endfor -%}
+</ul>

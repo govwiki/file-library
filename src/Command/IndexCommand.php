@@ -2,8 +2,9 @@
 
 namespace App\Command;
 
-use App\Entity\DocumentFactory;
-use App\Repository\DocumentRepositoryInterface;
+use App\Entity\Directory;
+use App\Entity\EntityFactory;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,30 +24,34 @@ class IndexCommand extends Command
     const DOCUMENT_PATTERN = '/([A-Z]{2})\s+(.*?)\s+(\d{4})\.pdf/i';
 
     /**
-     * @var DocumentRepositoryInterface
+     * @var EntityManagerInterface
      */
-    private $repository;
+    private $em;
 
     /**
-     * @var DocumentFactory
+     * @var EntityFactory
      */
     private $factory;
 
     /**
+     * @var integer
+     */
+    private $bucketCount = 0;
+
+    /**
      * IndexCommand constructor.
      *
-     * @param DocumentRepositoryInterface $repository A
-     *                                                DocumentRepositoryInterface
-     *                                                instance.
-     * @param DocumentFactory             $factory    A DocumentFactory instance.
+     * @param EntityManagerInterface $em      A EntityManagerInterface
+     *                                        instance.
+     * @param EntityFactory          $factory A EntityFactory instance.
      */
     public function __construct(
-        DocumentRepositoryInterface $repository,
-        DocumentFactory $factory
+        EntityManagerInterface $em,
+        EntityFactory $factory
     ) {
         parent::__construct(self::NAME);
 
-        $this->repository = $repository;
+        $this->em = $em;
         $this->factory = $factory;
     }
 
@@ -92,7 +97,7 @@ class IndexCommand extends Command
             return 127;
         }
 
-        $path = rtrim($absPath, DIRECTORY_SEPARATOR);
+        $path = rtrim($absPath, '/');
 
         $output->writeln(sprintf(
             '<info>Index documents in "%s" directory:</info>',
@@ -105,78 +110,54 @@ class IndexCommand extends Command
     }
 
     /**
-     * @param string          $path   A path to indexed directory.
-     * @param OutputInterface $output A OutputInterface instance.
+     * @param string          $path     A path to indexed directory.
+     * @param OutputInterface $output   A OutputInterface instance.
+     * @param Directory|null  $previous A previous directory.
      *
      * @return void
      */
-    private function indexDocument(string $path, OutputInterface $output)
-    {
-        $typeDirs = $this->createDirIterator($path);
-        $bucket = new DocumentBucket($this->repository, self::BUCKET_SIZE);
+    private function indexDocument(
+        string $path,
+        OutputInterface $output,
+        Directory $previous = null
+    ) {
+        $output->writeln(sprintf('<comment>Process "%s" directory</comment>', $path));
 
-        /** @var \SplFileInfo $typeDir */
-        foreach ($typeDirs as $typeDir) {
-            $type = $typeDir->getFilename();
-            $output->writeln(sprintf('  Found type <comment>"%s"</comment>', $type));
+        $iterator = new \DirectoryIterator($path);
+        $iterator = new \CallbackFilterIterator($iterator, function (\DirectoryIterator $file) {
+            return !$file->isDot();
+        });
 
-            $stateDirs = $this->createDirIterator($typeDir->getPathname());
-            /** @var \SplFileInfo $stateDir */
-            foreach ($stateDirs as $stateDir) {
-                $state = $stateDir->getFilename();
-                $output->writeln(sprintf('    Found state <comment>"%s"</comment>', $state));
+        /** @var \DirectoryIterator $file */
+        foreach ($iterator as $file) {
+            $name = $file->getFilename();
 
-                $yearDirs = $this->createDirIterator($stateDir->getPathname());
+            if ($file->isDir()) {
+                $directory = $this->factory->createDirectory($name, $previous);
+                $this->persist($directory);
 
-                /** @var \SplFileInfo $yearDir */
-                foreach ($yearDirs as $yearDir) {
-                    $year = $yearDir->getFilename();
-                    $output->writeln(sprintf('      Found year <comment>"%s"</comment>', $year));
-
-                    $documents = new \DirectoryIterator($yearDir->getPathname());
-                    $documents = new \RegexIterator($documents, self::DOCUMENT_PATTERN);
-
-                    /** @var \SplFileInfo $documentFile */
-                    foreach ($documents as $documentFile) {
-                        $name = preg_replace('/\.pdf$/i', '', $documentFile->getFilename());
-                        $path = $documentFile->getPathname();
-                        $size = filesize($path);
-
-                        if (! is_int($size)) {
-                            throw new \RuntimeException(sprintf(
-                                'Can\'t get size of file "%s"',
-                                $path
-                            ));
-                        }
-
-                        $output->writeln(sprintf('        Add document <comment>"%s"</comment>', $name));
-
-                        $bucket->attach($this->factory->createDocument(
-                            $name,
-                            $type,
-                            $state,
-                            (int) $year,
-                            $path,
-                            $size
-                        ));
-                    }
-                }
+                $this->indexDocument($path .'/'. $name, $output, $directory);
+            } else {
+                $this->persist($this->factory->createDocument(
+                    $name,
+                    $file->getSize(),
+                    $previous
+                ));
             }
         }
-
-        $bucket->flush();
     }
 
     /**
-     * @param string $path A path to iterated directory.
+     * @param object $entity A persisted entity.
      *
-     * @return \Iterator
+     * @return void
      */
-    private function createDirIterator(string $path): \Iterator
+    private function persist($entity)
     {
-        $iterator = new \DirectoryIterator($path);
-        return new \CallbackFilterIterator($iterator, function (\DirectoryIterator $file) {
-            return $file->isDir() && !$file->isDot();
-        });
+        $this->em->persist($entity);
+        if (++$this->bucketCount === self::BUCKET_SIZE) {
+            $this->em->flush();
+            $this->bucketCount = 0;
+        }
     }
 }

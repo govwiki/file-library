@@ -2,6 +2,10 @@
 
 namespace App\Service\FileStorage;
 
+use App\Service\FileStorage\FileList\FileListInterface;
+use Psr\Http\Message\StreamInterface;
+use Slim\Http\Stream;
+
 /**
  * Class FilesystemFileStorage
  *
@@ -30,14 +34,14 @@ class FilesystemFileStorage implements FileStorageInterface
             ));
         }
 
-        $this->root = rtrim($path, '/');
+        $this->root = rtrim($path, '/') . '/';
     }
 
     /**
      * @param string $src  Source file path.
      * @param string $dest Destination file path.
      *
-     * @return string Stored file unique key.
+     * @return string Public path to file.
      */
     public function store(string $src, string $dest): string
     {
@@ -49,7 +53,7 @@ class FilesystemFileStorage implements FileStorageInterface
             ));
         }
 
-        $destPath = $this->root . '/' . ltrim($dest, '/');
+        $destPath = $this->root . ltrim($dest, '/');
 
         //
         // Create destination directory.
@@ -79,33 +83,90 @@ class FilesystemFileStorage implements FileStorageInterface
             ));
         }
 
-        //
-        // Prepare unique key - absolute path to stored file.
-        //
-        $destPath = realpath($destPath);
-        if (! is_string($destPath)) {
-            throw new FileStorageException(sprintf(
-                'Can\'t store file "%s" to "%s"',
-                $src,
-                $dest
-            ));
-        }
-
-        return $destPath;
+        return $dest;
     }
 
     /**
-     * @param string $uniqueKey Removed file unique key.
+     * Get all files inside specified path.
+     *
+     * @param string $publicPath Public path to directory.
+     *
+     * @return FileListInterface
+     */
+    public function listFiles(string $publicPath = '/'): FileListInterface
+    {
+        return new FilesystemFileList($this->buildAbsPath($publicPath));
+    }
+
+    /**
+     * @param string $publicPath Public path to removed file.
      *
      * @return void
      */
-    public function remove(string $uniqueKey)
+    public function remove(string $publicPath)
     {
-        if (! @unlink($uniqueKey)) {
+        $absPath = $this->buildAbsPath($publicPath);
+        if (! \file_exists($absPath)) {
+            return;
+        }
+
+        if (! @unlink($absPath)) {
             throw new FileStorageException(sprintf(
                 'Can\'t remove file "%s"',
-                $uniqueKey
+                $publicPath
             ));
         }
+    }
+
+    /**
+     * @param string $publicPath Public path to readed file.
+     *
+     * @return StreamInterface
+     */
+    public function read(string $publicPath): StreamInterface
+    {
+        $absPath = $this->buildAbsPath($publicPath);
+
+        if (! is_file($this->root . $publicPath) || ! is_readable($absPath)) {
+            throw new \LogicException(sprintf(
+                'Can\'t read content of file "%s" \'cause it not ordinal file or not readable',
+                $publicPath
+            ));
+        }
+
+        $file = fopen($absPath, 'rb');
+        if (! is_resource($file)) {
+            throw new \RuntimeException(sprintf(
+                'Can\'t read content of file "%s" \'cause it not ordinal file or not readable',
+                $absPath
+            ));
+        }
+
+        return new Stream($file);
+    }
+
+    /**
+     * @param string $publicPath A file public path.
+     *
+     * @return string
+     */
+    private function buildAbsPath(string $publicPath): string
+    {
+        $absPath = realpath($this->root . $publicPath);
+        if (! is_string($absPath)) {
+            throw new FileStorageException(sprintf(
+                'Can\'t build absolute path for "%s"',
+                $publicPath
+            ));
+        }
+
+        if (strpos($absPath, $this->root) === false) {
+            throw new FileStorageException(sprintf(
+                'Invalid public path "%s"',
+                $publicPath
+            ));
+        }
+
+        return $absPath;
     }
 }

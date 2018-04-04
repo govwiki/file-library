@@ -2,14 +2,14 @@
 
 namespace App\Service\FileStorage;
 
-use PHPUnit\Framework\TestCase;
+use Tests\AppTestCase;
 
 /**
  * Class FilesystemFileStorageTest
  *
  * @package App\Service\FileStorage
  */
-class FilesystemFileStorageTest extends TestCase
+class FilesystemFileStorageTest extends AppTestCase
 {
 
     const FIXTURE_ROOT = __DIR__ .'/../../Fixtures/FileStorage/root';
@@ -66,8 +66,8 @@ class FilesystemFileStorageTest extends TestCase
         $dest = '/dir2/dir22/dir221/file2211';
         touch($src);
 
-        $uniqueKey = $this->storage->store($src, $dest);
-        $this->assertEquals($uniqueKey, realpath(self::FIXTURE_ROOT.$dest));
+        $publicPath = $this->storage->store($src, $dest);
+        $this->assertEquals($publicPath, $dest);
         $this->assertFileExists(self::FIXTURE_ROOT.$dest);
         $this->assertFileNotExists($src);
     }
@@ -81,8 +81,8 @@ class FilesystemFileStorageTest extends TestCase
         $dest = '/dir1/dir11/dir111/file1111';
         touch($src);
 
-        $uniqueKey = $this->storage->store($src, $dest);
-        $this->assertEquals($uniqueKey, realpath(self::FIXTURE_ROOT.$dest));
+        $publicPath = $this->storage->store($src, $dest);
+        $this->assertEquals($publicPath, $dest);
         $this->assertFileExists(self::FIXTURE_ROOT.$dest);
         $this->assertFileNotExists($src);
     }
@@ -92,20 +92,17 @@ class FilesystemFileStorageTest extends TestCase
      */
     public function testRemove()
     {
-        $path = self::FIXTURE_ROOT.'/dir1/dir11/dir111/file1111';
+        $path = '/dir1/dir11/dir111/file1111';
         $this->storage->remove($path);
         $this->assertFileNotExists($path);
     }
 
     /**
-     * @expectedException \App\Service\FileStorage\FileStorageException
-     * @expectedExceptionMessage Can't remove file
-     *
      * @return void
      */
-    public function testRemoveUnknown()
+    public function testRemoveNotExistsFile()
     {
-        $path = self::FIXTURE_ROOT.'/dir1/dir11/dir111/file1111';
+        $path = '/dir1/dir11/dir111/file1155';
         $this->storage->remove($path);
         $this->assertFileNotExists($path);
     }

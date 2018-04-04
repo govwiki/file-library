@@ -2,174 +2,66 @@
 
 namespace App\Entity;
 
-use Assert\Assert;
-use Assert\Assertion;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Class Document
  *
- * @ORM\Entity(repositoryClass="App\Repository\DocumentRepository")
+ * @ORM\Entity
  *
  * @package App\Entity
  */
-class Document implements \JsonSerializable
+class Document extends AbstractFile
 {
 
     /**
-     * @var integer|null
+     * Document file extension.
      *
-     * @ORM\Column(type="bigint")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     */
-    private $id;
-
-    /**
      * @var string
      *
      * @ORM\Column
      */
-    private $name;
+    public $ext;
 
     /**
-     * @var string
+     * AbstractFile constructor.
      *
-     * @ORM\Column
-     */
-    private $slug;
-
-    /**
-     * @var integer
-     *
-     * @ORM\Column(type="integer")
-     */
-    private $fileSize;
-
-    /**
-     * @var \DateTime
-     *
-     * @ORM\Column(type="datetime")
-     */
-    private $createdAt;
-
-    /**
-     * @var
-     */
-    private $direcotry;
-
-    /**
-     * Document constructor.
-     *
-     * @param string  $name     Full document name.
-     * @param string  $slug     Slug for document path.
-     * @param integer $fileSize File size in bytes.
+     * @param string    $name       A filename without extension.
+     * @param string    $ext        A file extension.
+     * @param string    $publicPath A public path to file.
+     * @param string    $slug       A filename slug.
+     * @param integer   $fileSize   A file size.
+     * @param Directory $parent     A parent directory.
      */
     public function __construct(
         string $name,
+        string $ext,
+        string $publicPath,
         string $slug,
-        int $fileSize
+        int $fileSize,
+        Directory $parent = null
     ) {
-        /** @psalm-suppress MixedMethodCall */
-        Assert::lazy()
-            ->that($name, 'name')->notBlank()->maxLength(255)
-            ->that($slug, 'slug')->notBlank()->maxLength(255)
-            ->that($fileSize, 'fileSize')->greaterThan(0)
-            ->tryAll();
+        parent::__construct($name, $publicPath, $slug, $fileSize, $parent);
 
-        $this->name = $name;
-        $this->slug = $slug;
-        $this->fileSize = $fileSize;
-        $this->createdAt = new \DateTime();
-    }
-
-    /**
-     * @return integer|null
-     */
-    public function getId()
-    {
-        return $this->id;
+        $this->ext = $ext;
     }
 
     /**
      * @return string
      */
-    public function getName(): string
+    public function getExt(): string
     {
-        return $this->name;
+        return $this->ext;
     }
 
     /**
-     * @param string $name New document name.
+     * @param string $ext A file extension.
      *
      * @return $this
      */
-    public function setName(string $name)
+    public function setExt(string $ext)
     {
-        /** @psalm-suppress MixedMethodCall */
-        Assert::that($name)->notBlank()->maxLength(255);
-        $this->name = $name;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSlug(): string
-    {
-        return $this->slug;
-    }
-
-    /**
-     * @param string $slug A new name slug.
-     *
-     * @return $this
-     */
-    public function setSlug(string $slug)
-    {
-        $this->slug = $slug;
-
-        return $this;
-    }
-
-    /**
-     * @return integer
-     */
-    public function getFileSize(): int
-    {
-        return $this->fileSize;
-    }
-
-    /**
-     * @param integer $fileSize Document file size in bytes.
-     *
-     * @return $this
-     */
-    public function setFileSize(int $fileSize)
-    {
-        Assertion::greaterThan($fileSize, 0);
-        $this->fileSize = $fileSize;
-
-        return $this;
-    }
-
-    /**
-     * @return \DateTime
-     */
-    public function getCreatedAt(): \DateTime
-    {
-        return $this->createdAt;
-    }
-
-    /**
-     * @param \DateTime $createdAt When document is created.
-     *
-     * @return $this
-     */
-    public function setCreatedAt(\DateTime $createdAt)
-    {
-        $this->createdAt = $createdAt;
+        $this->ext = $ext;
 
         return $this;
     }
@@ -181,12 +73,10 @@ class Document implements \JsonSerializable
      */
     public function jsonSerialize(): array
     {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'fileSize' => $this->fileSize,
-            'createdAt' => $this->createdAt->format('c'),
-        ];
+        $data = parent::jsonSerialize();
+        $data['type'] = 'document';
+        $data['ext'] = $this->ext;
+
+        return $data;
     }
 }

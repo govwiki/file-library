@@ -12,20 +12,18 @@ abstract class AbstractController
 
 
     /**
-     * @param array  $args A array of arguments.
-     * @param string $name A required argument name.
+     * @param array  $args    A array of arguments.
+     * @param string $name    A required argument name.
+     * @param mixed  $default Default value.
      *
-     * @return string
+     * @return string|null
      *
      * @throws \InvalidArgumentException If required parameter not found.
      */
-    protected function getArgument(array $args, string $name): string
+    protected function getArgument(array $args, string $name, string $default = null)
     {
         if (! isset($args[$name])) {
-            throw new \InvalidArgumentException(sprintf(
-                'Can\'t find required parameter "%s"',
-                $name
-            ));
+            return $default;
         }
 
         /** @psalm-suppress MixedAssignment */

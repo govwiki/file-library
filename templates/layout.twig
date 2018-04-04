@@ -26,9 +26,7 @@
     </header>
     <main>
         {%- if block('breadcrumb') is defined -%}
-            <ul class="breadcrumb">
-                {{ block('breadcrumb')|raw }}
-            </ul>
+            {{ block('breadcrumb')|raw }}
         {%- endif -%}
         {%- block main %}{% endblock main -%}
     </main>

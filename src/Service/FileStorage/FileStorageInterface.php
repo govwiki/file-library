@@ -2,6 +2,9 @@
 
 namespace App\Service\FileStorage;
 
+use App\Service\FileStorage\FileList\FileListInterface;
+use Psr\Http\Message\StreamInterface;
+
 /**
  * Interface FileStorageInterface
  *
@@ -14,7 +17,7 @@ interface FileStorageInterface
      * @param string $src  Source file path.
      * @param string $dest Destination file path.
      *
-     * @return string Stored file unique key.
+     * @return string Public path to file.
      */
     public function store(
         string $src,
@@ -22,9 +25,25 @@ interface FileStorageInterface
     ): string;
 
     /**
-     * @param string $uniqueKey Removed file unique key.
+     * Get all files inside specified path.
+     *
+     * @param string $publicPath Public path to directory.
+     *
+     * @return FileListInterface
+     */
+    public function listFiles(string $publicPath = '/'): FileListInterface;
+
+    /**
+     * @param string $publicPath Public path to removed file.
      *
      * @return void
      */
-    public function remove(string $uniqueKey);
+    public function remove(string $publicPath);
+
+    /**
+     * @param string $publicPath Public path to file.
+     *
+     * @return StreamInterface
+     */
+    public function read(string $publicPath): StreamInterface;
 }

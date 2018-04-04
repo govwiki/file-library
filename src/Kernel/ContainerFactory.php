@@ -36,6 +36,9 @@ class ContainerFactory
                 'domain' => getenv('DOMAIN'),
                 'displayErrorDetails' => $debug,
                 'addContentLengthHeader' => false,
+                'fileStorage' => [
+                    'root' => getenv('FILE_STORAGE_ROOT'),
+                ],
                 'view' => [
                     'template_path' => $path . '/templates/',
                     'cache_path' => $path . '/var/cache/twig',

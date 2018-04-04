@@ -2,135 +2,73 @@
 
 namespace App\Entity;
 
-use Assert\Assert;
-use Assert\Assertion;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Class Directory
  *
- * @ORM\Entity(repositoryClass="App\Repository\DocumentRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\DirectoryRepository")
  *
  * @package App\Entity
  */
-class Directory implements \JsonSerializable
+class Directory extends AbstractFile
 {
 
     /**
-     * @var integer|null
+     * @var Collection
      *
-     * @ORM\Column(type="bigint")
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
+     * @ORM\OneToMany(targetEntity="App\Entity\AbstractFile", mappedBy="parent", cascade={ "ALL" })
      */
-    private $id;
+    private $childes;
 
     /**
-     * @var string
+     * AbstractFile constructor.
      *
-     * @ORM\Column
-     */
-    private $name;
-
-    /**
-     * @var string
-     *
-     * @ORM\Column
-     */
-    private $slug;
-
-    /**
-     * @var \DateTime
-     */
-    private $createdAt;
-
-    /**
-     * Document constructor.
-     *
-     * @param string $name Directory name.
-     * @param string $slug Slug for document name.
+     * @param string    $name       A filename.
+     * @param string    $publicPath A public path to file.
+     * @param string    $slug       A filename slug.
+     * @param Directory $parent     A parent directory.
      */
     public function __construct(
         string $name,
-        string $slug
+        string $publicPath,
+        string $slug,
+        Directory $parent = null
     ) {
-        /** @psalm-suppress MixedMethodCall */
-        Assert::lazy()
-            ->that($name, 'name')->notBlank()->maxLength(255)
-            ->that($slug, 'slug')->notBlank()->maxLength(255)
-            ->tryAll();
-
-        $this->name = $name;
-        $this->slug = $slug;
-        $this->createdAt = new \DateTime();
+        parent::__construct($name, $publicPath, $slug, null, $parent);
+        $this->childes = new ArrayCollection();
     }
 
     /**
-     * @return integer|null
+     * @return Collection
      */
-    public function getId()
+    public function getChildes(): Collection
     {
-        return $this->id;
+        return $this->childes;
     }
 
     /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @param string $name New document name.
+     * @param AbstractFile $file A added file.
      *
      * @return $this
      */
-    public function setName(string $name)
+    public function addChild(AbstractFile $file)
     {
-        /** @psalm-suppress MixedMethodCall */
-        Assert::that($name)->notBlank()->maxLength(255);
-        $this->name = $name;
+        $this->childes[] = $file->setParent($this);
 
         return $this;
     }
 
     /**
-     * @return string
-     */
-    public function getSlug(): string
-    {
-        return $this->slug;
-    }
-
-    /**
-     * @param string $slug A new name slug.
+     * @param AbstractFile $file A removed file.
      *
      * @return $this
      */
-    public function setSlug(string $slug)
+    public function removeChild(AbstractFile $file)
     {
-        $this->slug = $slug;
-
-        return $this;
-    }
-
-    /**
-     * @return \DateTime
-     */
-    public function getCreatedAt(): \DateTime
-    {
-        return $this->createdAt;
-    }
-
-    /**
-     * @param \DateTime $createdAt When this directory is created.
-     *
-     * @return $this
-     */
-    public function setCreatedAt(\DateTime $createdAt)
-    {
-        $this->createdAt = $createdAt;
+        $this->childes->removeElement($file->setParent(null));
 
         return $this;
     }
@@ -142,11 +80,9 @@ class Directory implements \JsonSerializable
      */
     public function jsonSerialize(): array
     {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'createdAt' => $this->createdAt->format('c'),
-        ];
+        $data = parent::jsonSerialize();
+        $data['type'] = 'directory';
+
+        return $data;
     }
 }

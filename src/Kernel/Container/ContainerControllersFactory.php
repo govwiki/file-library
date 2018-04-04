@@ -2,13 +2,12 @@
 
 namespace App\Kernel\Container;
 
-use App\Controller\DocumentApiController;
-use App\Controller\DocumentController;
 use App\Controller\ErrorHandler;
+use App\Controller\FileController;
 use App\Controller\SecurityController;
-use App\Entity\DocumentFactory;
-use App\Repository\DocumentRepositoryInterface;
+use App\Repository\FileRepositoryInterface;
 use App\Service\Authenticator\AuthenticatorInterface;
+use App\Service\FileStorage\FileStorageInterface;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouterInterface;
 use Slim\Views\Twig;
@@ -46,35 +45,21 @@ class ContainerControllersFactory
         }
 
         /**
-         * Document controller.
+         * File controller.
          *
          * @param ContainerInterface $container A ContainerInterface instance.
          *
-         * @return DocumentController
+         * @return FileController
          */
-        $container[DocumentController::class] = function (ContainerInterface $container): DocumentController {
+        $container[FileController::class] = function (ContainerInterface $container): FileController {
             /** @var Twig $view */
             $view = $container->get('view');
-            /** @var DocumentRepositoryInterface $repository */
-            $repository = $container->get(DocumentRepositoryInterface::class);
+            /** @var FileRepositoryInterface $repository */
+            $repository = $container->get(FileRepositoryInterface::class);
+            /** @var FileStorageInterface $fileStorage */
+            $fileStorage = $container->get(FileStorageInterface::class);
 
-            return new DocumentController($view, $repository);
-        };
-
-        /**
-         * Document API controller.
-         *
-         * @param ContainerInterface $container A ContainerInterface instance.
-         *
-         * @return DocumentApiController
-         */
-        $container[DocumentApiController::class] = function (ContainerInterface $container): DocumentApiController {
-            /** @var DocumentRepositoryInterface $repository */
-            $repository = $container->get(DocumentRepositoryInterface::class);
-            /** @var DocumentFactory $factory */
-            $factory = $container->get(DocumentFactory::class);
-
-            return new DocumentApiController($repository, $factory);
+            return new FileController($view, $repository, $fileStorage);
         };
 
         /**

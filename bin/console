@@ -35,8 +35,8 @@ $console->setHelperSet(new \Symfony\Component\Console\Helper\HelperSet([
 
 $console->addCommands([
     new \App\Command\IndexCommand(
-        $container->get(\App\Repository\DocumentRepositoryInterface::class),
-        $container->get(\App\Entity\DocumentFactory::class)
+        $container->get('em'),
+        $container->get(\App\Entity\EntityFactory::class)
     ),
     new \App\Command\FixtureCommand($em, ROOT_PATH . '/db/fixtures'),
 

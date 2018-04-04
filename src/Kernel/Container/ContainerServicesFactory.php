@@ -2,13 +2,18 @@
 
 namespace App\Kernel\Container;
 
-use App\Entity\Document;
-use App\Entity\DocumentFactory;
+use App\Entity\AbstractFile;
+use App\Entity\Directory;
+use App\Entity\EntityFactory;
 use App\Entity\User;
-use App\Repository\DocumentRepositoryInterface;
+use App\Repository\DirectoryRepositoryInterface;
+use App\Repository\FileRepositoryInterface;
 use App\Repository\UserRepositoryInterface;
 use App\Service\Authenticator\Authenticator;
 use App\Service\Authenticator\AuthenticatorInterface;
+use App\Service\FileStorage\FileStorageInterface;
+use App\Service\FileStorage\FilesystemFileStorage;
+use App\Service\FileStorage\ORMIndexFileStorage;
 use Doctrine\Common\Inflector\Inflector;
 use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ORM\EntityManager;
@@ -29,7 +34,8 @@ class ContainerServicesFactory
 {
 
     const REPOSITORIES_MAP = [
-        DocumentRepositoryInterface::class => Document::class,
+        FileRepositoryInterface::class => AbstractFile::class,
+        DirectoryRepositoryInterface::class => Directory::class,
         UserRepositoryInterface::class => User::class,
     ];
 
@@ -67,8 +73,6 @@ class ContainerServicesFactory
                 'debug',
                 'cache_path',
             ]);
-            /** @var DocumentRepositoryInterface $repository */
-            $repository = $container->get(DocumentRepositoryInterface::class);
 
             $view = new Twig($settings['template_path'], [
                 'auto_reload' => $settings['debug'],
@@ -77,7 +81,7 @@ class ContainerServicesFactory
             ]);
 
             $view->addExtension(new TwigExtension($container['router'], '/'));
-            $view->addExtension(new \App\Twig\Extension\Twig($repository));
+            $view->addExtension(new \App\Kernel\Twig\TwigExtension());
 
             return $view;
         };
@@ -124,7 +128,10 @@ class ContainerServicesFactory
                  */
                 public function classToTableName($className): string // @codingStandardsIgnoreLine
                 {
-                    return Inflector::pluralize(parent::classToTableName($className));
+                    // Remove 'abstract_' prefix from table name.
+                    $name = str_replace('abstract_', '', parent::classToTableName($className));
+
+                    return Inflector::pluralize($name);
                 }
             });
 
@@ -141,12 +148,36 @@ class ContainerServicesFactory
         }
 
         /**
-         * Create document factory.
+         * Create entity factory.
          *
-         * @return DocumentFactory
+         * @return EntityFactory
          */
-        $container[DocumentFactory::class] = function (): DocumentFactory {
-            return new DocumentFactory();
+        $container[EntityFactory::class] = function (ContainerInterface $container): EntityFactory {
+            /** @var DirectoryRepositoryInterface $directoryRepository */
+            $directoryRepository = $container->get(DirectoryRepositoryInterface::class);
+
+            return new EntityFactory($directoryRepository);
+        };
+
+        /**
+         * Create file storage instance.
+         *
+         * @param ContainerInterface $container A ContainerInterface instance.
+         *
+         * @return FileStorageInterface
+         */
+        $container[FileStorageInterface::class] = function (ContainerInterface $container): FileStorageInterface {
+            /** @var EntityManagerInterface $em */
+            $em = $container->get('em');
+            /** @var EntityFactory $factory */
+            $factory = $container->get(EntityFactory::class);
+
+            /** @var array{root: string} $settings */
+            $settings = self::getSettings($container, 'fileStorage', [ 'root' ]);
+
+            $fileStorage = new FilesystemFileStorage($settings['root']);
+
+            return new ORMIndexFileStorage($fileStorage, $em, $factory);
         };
 
         /**
