@@ -8,7 +8,7 @@ use Doctrine\DBAL\Schema\Schema;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-class Version20180405082634 extends AbstractMigration
+class Version20180405100306 extends AbstractMigration
 {
     /**
      * @param Schema $schema
@@ -19,6 +19,7 @@ class Version20180405082634 extends AbstractMigration
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
         $this->addSql('CREATE TABLE files (id BIGINT AUTO_INCREMENT NOT NULL, parent_id BIGINT DEFAULT NULL, name VARCHAR(255) NOT NULL, public_path VARCHAR(255) NOT NULL, slug VARCHAR(255) NOT NULL, file_size INT DEFAULT NULL, created_at DATETIME NOT NULL, type VARCHAR(255) NOT NULL, ext VARCHAR(255) DEFAULT NULL, INDEX IDX_6354059727ACA70 (parent_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE users (username VARCHAR(255) NOT NULL, password VARCHAR(255) NOT NULL, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255) NOT NULL, PRIMARY KEY(username)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB');
         $this->addSql('ALTER TABLE files ADD CONSTRAINT FK_6354059727ACA70 FOREIGN KEY (parent_id) REFERENCES files (id)');
     }
 
@@ -32,5 +33,6 @@ class Version20180405082634 extends AbstractMigration
 
         $this->addSql('ALTER TABLE files DROP FOREIGN KEY FK_6354059727ACA70');
         $this->addSql('DROP TABLE files');
+        $this->addSql('DROP TABLE users');
     }
 }
