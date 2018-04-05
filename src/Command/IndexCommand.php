@@ -2,11 +2,9 @@
 
 namespace App\Command;
 
-use App\Entity\Directory;
-use App\Entity\EntityFactory;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Service\FileStorage\FileStorageInterface;
+use App\Service\FileStorage\Index\FileStorageIndexInterface;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -24,14 +22,14 @@ class IndexCommand extends Command
     const DOCUMENT_PATTERN = '/([A-Z]{2})\s+(.*?)\s+(\d{4})\.pdf/i';
 
     /**
-     * @var EntityManagerInterface
+     * @var FileStorageInterface
      */
-    private $em;
+    private $fileStorage;
 
     /**
-     * @var EntityFactory
+     * @var FileStorageIndexInterface
      */
-    private $factory;
+    private $fileStorageIndex;
 
     /**
      * @var integer
@@ -41,18 +39,19 @@ class IndexCommand extends Command
     /**
      * IndexCommand constructor.
      *
-     * @param EntityManagerInterface $em      A EntityManagerInterface
-     *                                        instance.
-     * @param EntityFactory          $factory A EntityFactory instance.
+     * @param FileStorageIndexInterface $fileStorageIndex A FileStorageIndexInterface
+     *                                                    instance.
+     * @param FileStorageInterface      $fileStorage      A FileStorageInterface
+     *                                                    instance.
      */
     public function __construct(
-        EntityManagerInterface $em,
-        EntityFactory $factory
+        FileStorageIndexInterface $fileStorageIndex,
+        FileStorageInterface $fileStorage
     ) {
         parent::__construct(self::NAME);
 
-        $this->em = $em;
-        $this->factory = $factory;
+        $this->fileStorageIndex = $fileStorageIndex;
+        $this->fileStorage = $fileStorage;
     }
 
     /**
@@ -62,9 +61,7 @@ class IndexCommand extends Command
      */
     protected function configure()
     {
-        $this
-            ->setDescription('Recursively index documents in specified path.')
-            ->addArgument('directory', InputArgument::REQUIRED, 'Path to directory with documents');
+        $this->setDescription('Recursively index documents in root path.');
     }
 
     /**
@@ -81,83 +78,53 @@ class IndexCommand extends Command
      * @return integer
      *
      * @see setCode()
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        /** @var string $path */
-        $path = $input->getArgument('directory');
-        /** @var string|boolean $absPath */
-        $absPath = realpath($path);
+        $output->write('> Clear file index: ');
+        $this->fileStorageIndex->clear();
+        $output->writeln('[ <info>OK</info> ]');
 
-        if (! is_string($absPath) || ! is_readable($absPath)) {
-            $output->writeln(sprintf(
-                '<error>Directory "%s" is not exists or not readable.</error>',
-                $path
-            ));
-            return 127;
-        }
-
-        $path = rtrim($absPath, '/');
-
-        $output->writeln(sprintf(
-            '<info>Index documents in "%s" directory:</info>',
-            $path
-        ));
-
-        $this->indexDocument($path, $output);
+        $output->writeln('> Index documents in file storage root directory: ');
+        $this->indexDocument('/', $output);
+        $output->writeln('> Index documents in file storage root directory: [ <info>OK</info> ]');
 
         return 0;
     }
 
     /**
-     * @param string          $path     A path to indexed directory.
-     * @param OutputInterface $output   A OutputInterface instance.
-     * @param Directory|null  $previous A previous directory.
+     * @param string          $path   A path to indexed directory.
+     * @param OutputInterface $output A OutputInterface instance.
      *
      * @return void
      */
     private function indexDocument(
         string $path,
-        OutputInterface $output,
-        Directory $previous = null
+        OutputInterface $output
     ) {
-        $output->writeln(sprintf('<comment>Process "%s" directory</comment>', $path));
-
-        $iterator = new \DirectoryIterator($path);
-        $iterator = new \CallbackFilterIterator($iterator, function (\DirectoryIterator $file) {
-            return !$file->isDot();
-        });
+        $output->writeln(sprintf("\t<comment>Process \"%s\" directory</comment>", $path));
+        $iterator = $this->fileStorage->listFiles($path);
 
         /** @var \DirectoryIterator $file */
         foreach ($iterator as $file) {
             $name = $file->getFilename();
+            $filePath = rtrim($path, '/') .'/'. $name;
 
             if ($file->isDir()) {
-                $directory = $this->factory->createDirectory($name, $previous);
-                $this->persist($directory);
-
-                $this->indexDocument($path .'/'. $name, $output, $directory);
+                $this->fileStorageIndex->index($filePath)->flush();
+                $this->indexDocument($filePath, $output);
             } else {
-                $this->persist($this->factory->createDocument(
-                    $name,
-                    $file->getSize(),
-                    $previous
-                ));
+                $this->fileStorageIndex->index($filePath, false, $file->getSize());
+            }
+
+            if (++$this->bucketCount === self::BUCKET_SIZE) {
+                $this->fileStorageIndex->flush();
+                $this->bucketCount = 0;
             }
         }
-    }
 
-    /**
-     * @param object $entity A persisted entity.
-     *
-     * @return void
-     */
-    private function persist($entity)
-    {
-        $this->em->persist($entity);
-        if (++$this->bucketCount === self::BUCKET_SIZE) {
-            $this->em->flush();
-            $this->bucketCount = 0;
-        }
+        $this->fileStorageIndex->flush();
     }
 }

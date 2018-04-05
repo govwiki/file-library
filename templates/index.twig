@@ -12,6 +12,47 @@
         </thead>
     </table>
 
+    {%- if user is defined -%}
+        <div style="text-align: center">
+            <button id="document-add" class="btn">Add new document</button>
+        </div>
+
+        {%- embed './Partial/modal.twig' with {
+            id: 'document-rename-modal',
+            title: 'Rename document'
+        } -%}
+            {% block content %}
+                <form id="rename-form">
+                    <div>
+                        <input id="document-name" class="form-control" name="name">
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-borderless" data-modal-close>Cancel</button>
+                        <button type="submit" class="btn">Rename</button>
+                    </div>
+                </form>
+            {% endblock content %}
+        {%- endembed -%}
+
+        {%- embed './Partial/modal.twig' with {
+            id: 'document-add-modal',
+            title: 'Add new document'
+        } -%}
+            {% block content %}
+                <form id="upload-form" action="{{ path_for('files-upload', { slug: currentDir.slug }) }}">
+                    <div>
+                        <input type="file" id="document-file" class="form-control" name="file">
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-borderless" data-modal-close>Cancel</button>
+                        <button type="submit" class="btn">Add</button>
+                    </div>
+                </form>
+            {% endblock content %}
+        {%- endembed -%}
+    {%- endif -%}
 {% endblock main %}
 
 {% block javascripts %}

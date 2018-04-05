@@ -3,17 +3,17 @@
 namespace App\Kernel\Container;
 
 use App\Entity\AbstractFile;
-use App\Entity\Directory;
 use App\Entity\EntityFactory;
 use App\Entity\User;
-use App\Repository\DirectoryRepositoryInterface;
 use App\Repository\FileRepositoryInterface;
 use App\Repository\UserRepositoryInterface;
 use App\Service\Authenticator\Authenticator;
 use App\Service\Authenticator\AuthenticatorInterface;
 use App\Service\FileStorage\FileStorageInterface;
 use App\Service\FileStorage\FilesystemFileStorage;
-use App\Service\FileStorage\ORMIndexFileStorage;
+use App\Service\FileStorage\Index\FileStorageIndexInterface;
+use App\Service\FileStorage\Index\ORMFileStorageIndex;
+use App\Service\FileStorage\IndexedFileStorage;
 use Doctrine\Common\Inflector\Inflector;
 use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ORM\EntityManager;
@@ -35,7 +35,6 @@ class ContainerServicesFactory
 
     const REPOSITORIES_MAP = [
         FileRepositoryInterface::class => AbstractFile::class,
-        DirectoryRepositoryInterface::class => Directory::class,
         UserRepositoryInterface::class => User::class,
     ];
 
@@ -150,13 +149,41 @@ class ContainerServicesFactory
         /**
          * Create entity factory.
          *
+         * @param ContainerInterface $container A ContainerInterface instance.
+         *
          * @return EntityFactory
          */
         $container[EntityFactory::class] = function (ContainerInterface $container): EntityFactory {
-            /** @var DirectoryRepositoryInterface $directoryRepository */
-            $directoryRepository = $container->get(DirectoryRepositoryInterface::class);
+            /** @var FileRepositoryInterface $repository */
+            $repository = $container->get(FileRepositoryInterface::class);
 
-            return new EntityFactory($directoryRepository);
+            return new EntityFactory($repository);
+        };
+
+        /**
+         * @param ContainerInterface $container A ContainerInterface instance.
+         *
+         * @return FileStorageIndexInterface
+         */
+        $container[FileStorageIndexInterface::class] = function(ContainerInterface $container): FileStorageIndexInterface {
+            /** @var EntityManagerInterface $em */
+            $em = $container->get('em');
+            /** @var EntityFactory $factory */
+            $factory = $container->get(EntityFactory::class);
+
+            return new ORMFileStorageIndex($factory, $em);
+        };
+
+        /**
+         * @param ContainerInterface $container A ContainerInterface instance.
+         *
+         * @return FilesystemFileStorage
+         */
+        $container[FilesystemFileStorage::class] = function (ContainerInterface $container): FilesystemFileStorage {
+            /** @var array{root: string} $settings */
+            $settings = self::getSettings($container, 'fileStorage', [ 'root' ]);
+
+            return new FilesystemFileStorage($settings['root']);
         };
 
         /**
@@ -167,17 +194,12 @@ class ContainerServicesFactory
          * @return FileStorageInterface
          */
         $container[FileStorageInterface::class] = function (ContainerInterface $container): FileStorageInterface {
-            /** @var EntityManagerInterface $em */
-            $em = $container->get('em');
-            /** @var EntityFactory $factory */
-            $factory = $container->get(EntityFactory::class);
+            /** @var FilesystemFileStorage $fileStorage */
+            $fileStorage = $container->get(FilesystemFileStorage::class);
+            /** @var FileStorageIndexInterface $fileStorageIndex */
+            $fileStorageIndex = $container->get(FileStorageIndexInterface::class);
 
-            /** @var array{root: string} $settings */
-            $settings = self::getSettings($container, 'fileStorage', [ 'root' ]);
-
-            $fileStorage = new FilesystemFileStorage($settings['root']);
-
-            return new ORMIndexFileStorage($fileStorage, $em, $factory);
+            return new IndexedFileStorage($fileStorage, $fileStorageIndex);
         };
 
         /**

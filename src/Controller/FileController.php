@@ -5,8 +5,10 @@ namespace App\Controller;
 use App\Entity\Directory;
 use App\Entity\Document;
 use App\Repository\FileRepositoryInterface;
+use App\Service\FileStorage\FileStorageException;
 use App\Service\FileStorage\FileStorageInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UploadedFileInterface;
 use Slim\Exception\NotFoundException;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -83,7 +85,11 @@ class FileController extends AbstractController
                     ->withHeader('Content-Type', 'application/octet-stream')
                     ->withHeader('Content-Type', 'application/download')
                     ->withHeader('Content-Description', 'File Transfer')
-                    ->withHeader('Content-Disposition', sprintf('attachment; filename="%s.pdf"', $file->getName()))
+                    ->withHeader('Content-Disposition', sprintf(
+                        'attachment; filename="%s.%s"',
+                        $file->getName(),
+                        $file->getExt()
+                    ))
                     ->withHeader('Expires', '0')
                     ->withHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
                     ->withHeader('Pragma', 'public')
@@ -142,6 +148,55 @@ class FileController extends AbstractController
      * @param array    $args     Path arguments.
      *
      * @return ResponseInterface
+     */
+    public function upload(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $slug = $this->getArgument($args, 'slug');
+        $document = $this->repository->findBySlug($slug);
+
+        if ($document === null) {
+            return $response->withJson([
+                'errors' => [
+                    'title' => 'Document not found',
+                    'code' => 'NOT_FOUND',
+                    'description' => sprintf('Can\'t find document by slug "%s"', $slug),
+                ],
+            ])
+                ->withStatus(404);
+        }
+
+        /**
+         * @var UploadedFileInterface[] $files
+         * @psalm-var Array<string, UploadedFileInterface>
+         */
+        $files = $request->getUploadedFiles();
+        if (! isset($files['file'])) {
+            return $response->withJson([
+                'errors' => [
+                    'title' => 'Invalid request',
+                    'code' => 'INVALID_REQUEST',
+                    'description' => 'File should be uploaded with "file" key',
+                ],
+            ])
+                ->withStatus(404);
+        }
+
+        /** @var UploadedFileInterface $file */
+        $file = $files['file'];
+
+        $this->fileStorage->store($file->getStream(), $document->getPublicPath() . '/'. $file->getClientFilename());
+
+        return $response
+            ->withHeader('Content-Type', 'application/json;charset=utf-8')
+            ->withStatus(204);
+    }
+
+    /**
+     * @param Request  $request  A http request.
+     * @param Response $response A http response.
+     * @param array    $args     Path arguments.
+     *
+     * @return ResponseInterface
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
@@ -162,6 +217,63 @@ class FileController extends AbstractController
         }
 
         $this->fileStorage->remove($document->getPublicPath());
+
+        return $response
+            ->withHeader('Content-Type', 'application/json;charset=utf-8')
+            ->withStatus(204);
+    }
+
+    /**
+     * @param Request  $request  A http request.
+     * @param Response $response A http response.
+     * @param array    $args     Path arguments.
+     *
+     * @return ResponseInterface
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function update(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $slug = $this->getArgument($args, 'slug');
+        /** @var array{publicPath: string} $data */
+        $data = $request->getParsedBody();
+
+        if (! \is_array($data) || ! isset($data['publicPath'])) {
+            return $response->withJson([
+                'errors' => [
+                    'title' => 'Invalid request',
+                    'code' => 'INVALID_REQUEST',
+                    'description' => 'Request body should be json object with "publicPath" property',
+                ],
+            ])
+                ->withStatus(404);
+        }
+        $document = $this->repository->findBySlug($slug);
+
+        if ($document === null) {
+            return $response->withJson([
+                'errors' => [
+                    'title' => 'Document not found',
+                    'code' => 'NOT_FOUND',
+                    'description' => sprintf('Can\'t find document by slug "%s"', $slug),
+                ],
+            ])
+                ->withStatus(404);
+        }
+
+        $publicPath = $data['publicPath'];
+        try {
+            $this->fileStorage->move($document->getPublicPath(), $publicPath);
+        } catch (FileStorageException $exception) {
+            return $response->withJson([
+                'errors' => [
+                    'title' => 'Can\'t move',
+                    'code' => 'CANT_MOVE',
+                    'description' => sprintf('Can\'t move file "%s" to "%s"', $slug, $publicPath),
+                ],
+            ])
+                ->withStatus(404);
+        }
 
         return $response
             ->withHeader('Content-Type', 'application/json;charset=utf-8')

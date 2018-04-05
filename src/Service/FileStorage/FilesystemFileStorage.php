@@ -3,6 +3,7 @@
 namespace App\Service\FileStorage;
 
 use App\Service\FileStorage\FileList\FileListInterface;
+use App\Service\FileStorage\FileList\FilesystemFileList;
 use Psr\Http\Message\StreamInterface;
 use Slim\Http\Stream;
 
@@ -38,52 +39,17 @@ class FilesystemFileStorage implements FileStorageInterface
     }
 
     /**
-     * @param string $src  Source file path.
-     * @param string $dest Destination file path.
+     * @param StreamInterface $stream         Source file content as stream.
+     * @param string          $destPublicPath Destination file path.
      *
-     * @return string Public path to file.
+     * @return void
      */
-    public function store(string $src, string $dest): string
+    public function store(StreamInterface $stream, string $destPublicPath)
     {
-        $srcPath = realpath($src);
-        if (! is_string($srcPath) || ! is_readable($srcPath)) {
-            throw new FileStorageException(sprintf(
-                'Source file "%s" is not exists or not readable',
-                $src
-            ));
-        }
+        $absDestPath = $this->root . ltrim($destPublicPath, '/');
 
-        $destPath = $this->root . ltrim($dest, '/');
-
-        //
-        // Create destination directory.
-        //
-        $destPathParts = explode('/', $destPath);
-        unset($destPathParts[count($destPathParts) - 1]);
-        $destDir = implode('/', $destPathParts);
-
-        if (! is_dir($destDir)) {
-            if (! @mkdir($destDir, 0777, true) || ! is_dir($destDir)) {
-                throw new FileStorageException(sprintf(
-                    'Can\'t store file "%s" to "%s"',
-                    $src,
-                    $dest
-                ));
-            }
-        }
-
-        //
-        // Move file to specified directory.
-        //
-        if (! @rename($srcPath, $destPath)) {
-            throw new FileStorageException(sprintf(
-                'Can\'t store file "%s" to "%s"',
-                $src,
-                $dest
-            ));
-        }
-
-        return $dest;
+        $this->creteDirectoriersTo($absDestPath);
+        file_put_contents($absDestPath, $stream->getContents());
     }
 
     /**
@@ -99,6 +65,31 @@ class FilesystemFileStorage implements FileStorageInterface
     }
 
     /**
+     * @param string $srcPublicPath  Path to moved file.
+     * @param string $destPublicPath Destination path.
+     *
+     * @return void
+     */
+    public function move(string $srcPublicPath, string $destPublicPath)
+    {
+        $absSrcPath = $this->buildAbsPath($srcPublicPath);
+        $absDestPath = $this->root . ltrim($destPublicPath, '/');
+
+        $this->creteDirectoriersTo($absDestPath);
+
+        //
+        // Move file to specified directory.
+        //
+        if (! @rename($absSrcPath, $absDestPath)) {
+            throw new FileStorageException(sprintf(
+                'Can\'t store file "%s" to "%s"',
+                $srcPublicPath,
+                $destPublicPath
+            ));
+        }
+    }
+
+    /**
      * @param string $publicPath Public path to removed file.
      *
      * @return void
@@ -110,11 +101,27 @@ class FilesystemFileStorage implements FileStorageInterface
             return;
         }
 
-        if (! @unlink($absPath)) {
-            throw new FileStorageException(sprintf(
-                'Can\'t remove file "%s"',
-                $publicPath
-            ));
+        if (\is_dir($absPath)) {
+            $files = $this->listFiles($publicPath);
+
+            /** @var \DirectoryIterator $file */
+            foreach ($files as $file) {
+                $this->remove($publicPath .'/'. $file->getFilename());
+            }
+
+            if (! @rmdir($absPath)) {
+                throw new FileStorageException(sprintf(
+                    'Can\'t remove directory "%s"',
+                    $publicPath
+                ));
+            }
+        } else {
+            if (! @unlink($absPath)) {
+                throw new FileStorageException(sprintf(
+                    'Can\'t remove file "%s"',
+                    $publicPath
+                ));
+            }
         }
     }
 
@@ -146,6 +153,30 @@ class FilesystemFileStorage implements FileStorageInterface
     }
 
     /**
+     * @param string $filePath A file path to which we should create directories.
+     *
+     * @return void
+     */
+    private function creteDirectoriersTo(string $filePath)
+    {
+        //
+        // Create destination directory.
+        //
+        $filePathParts = explode('/', $filePath);
+        unset($filePathParts[count($filePathParts) - 1]);
+        $destDir = implode('/', $filePathParts);
+
+        if (! is_dir($destDir)) {
+            if (! @mkdir($destDir, 0777, true) || ! is_dir($destDir)) {
+                throw new FileStorageException(sprintf(
+                    'Can\'t create directories to "%s"',
+                    $filePath
+                ));
+            }
+        }
+    }
+
+    /**
      * @param string $publicPath A file public path.
      *
      * @return string
@@ -160,7 +191,7 @@ class FilesystemFileStorage implements FileStorageInterface
             ));
         }
 
-        if (strpos($absPath, $this->root) === false) {
+        if (strpos($absPath, rtrim($this->root, '/')) === false) {
             throw new FileStorageException(sprintf(
                 'Invalid public path "%s"',
                 $publicPath

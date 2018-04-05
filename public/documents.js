@@ -105,7 +105,8 @@
 
       api({
         url: event.target.getAttribute('action'),
-        data: { name: $renameInput.val() }
+        method: 'PUT',
+        data: { publicPath: $renameInput.val() }
       })
         .then(function () {
           dtTable.draw();
@@ -125,9 +126,9 @@
       event.preventDefault();
 
       var data = dtTable.row($(this).closest('tr')).data();
-      $renameInput.val(data.name);
+      $renameInput.val(data.publicPath);
 
-      $renameForm.attr('action', '/api/documents/' + data.slug + '/rename');
+      $renameForm.attr('action', '/files/' + data.slug);
       renameModal.setTitle('Rename "'+ data.name +'"').show();
     });
 
@@ -152,10 +153,11 @@
       event.preventDefault();
 
       var fd = new FormData();
-      fd.append('document', $uploadForm.find('input').prop('files')[0]);
+      fd.append('file', $uploadForm.find('input').prop('files')[0]);
 
       api({
-        url: '/api/documents/'+ documents.type +'/'+ documents.state +'/' + documents.year,
+        url: event.target.getAttribute('action'),
+        method: 'POST',
         data: fd,
         processData: false,
         contentType: false

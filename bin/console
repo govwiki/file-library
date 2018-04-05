@@ -35,8 +35,8 @@ $console->setHelperSet(new \Symfony\Component\Console\Helper\HelperSet([
 
 $console->addCommands([
     new \App\Command\IndexCommand(
-        $container->get('em'),
-        $container->get(\App\Entity\EntityFactory::class)
+        $container->get(\App\Service\FileStorage\Index\FileStorageIndexInterface::class),
+        $container->get(\App\Service\FileStorage\FilesystemFileStorage::class)
     ),
     new \App\Command\FixtureCommand($em, ROOT_PATH . '/db/fixtures'),
 

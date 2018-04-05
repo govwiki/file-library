@@ -66,9 +66,8 @@ class FilesystemFileStorageTest extends AppTestCase
         $dest = '/dir2/dir22/dir221/file2211';
         touch($src);
 
-        $publicPath = $this->storage->store($src, $dest);
-        $this->assertEquals($publicPath, $dest);
-        $this->assertFileExists(self::FIXTURE_ROOT.$dest);
+        $this->storage->store($src, $dest);
+        $this->assertFileExists(self::FIXTURE_ROOT . $dest);
         $this->assertFileNotExists($src);
     }
 
@@ -81,8 +80,7 @@ class FilesystemFileStorageTest extends AppTestCase
         $dest = '/dir1/dir11/dir111/file1111';
         touch($src);
 
-        $publicPath = $this->storage->store($src, $dest);
-        $this->assertEquals($publicPath, $dest);
+        $this->storage->store($src, $dest);
         $this->assertFileExists(self::FIXTURE_ROOT.$dest);
         $this->assertFileNotExists($src);
     }
@@ -98,6 +96,9 @@ class FilesystemFileStorageTest extends AppTestCase
     }
 
     /**
+     * @expectedException \App\Service\FileStorage\FileStorageException
+     * @expectedExceptionMessage Can't build absolute path for "/dir1/dir11/dir111/file1155"
+     *
      * @return void
      */
     public function testRemoveNotExistsFile()
@@ -114,6 +115,7 @@ class FilesystemFileStorageTest extends AppTestCase
      */
     public static function setUpBeforeClass()
     {
+        @mkdir(self::FIXTURE_ROOT, 0777, true);
         self::createFixtures(self::FIXTURE_ROOT, self::FIXTURES);
     }
 

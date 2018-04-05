@@ -14,15 +14,12 @@ interface FileStorageInterface
 {
 
     /**
-     * @param string $src  Source file path.
-     * @param string $dest Destination file path.
+     * @param StreamInterface $stream         Source file content as stream.
+     * @param string          $destPublicPath Destination file path.
      *
-     * @return string Public path to file.
+     * @return void
      */
-    public function store(
-        string $src,
-        string $dest
-    ): string;
+    public function store(StreamInterface $stream, string $destPublicPath);
 
     /**
      * Get all files inside specified path.
@@ -32,6 +29,14 @@ interface FileStorageInterface
      * @return FileListInterface
      */
     public function listFiles(string $publicPath = '/'): FileListInterface;
+
+    /**
+     * @param string $srcPublicPath  Path to moved file.
+     * @param string $destPublicPath Destination path.
+     *
+     * @return void
+     */
+    public function move(string $srcPublicPath, string $destPublicPath);
 
     /**
      * @param string $publicPath Public path to removed file.

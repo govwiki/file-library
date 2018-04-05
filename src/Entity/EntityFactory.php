@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Repository\DirectoryRepositoryInterface;
+use App\Repository\FileRepositoryInterface;
 use Cocur\Slugify\Slugify;
 
 /**
@@ -12,8 +12,6 @@ use Cocur\Slugify\Slugify;
  */
 class EntityFactory
 {
-
-
 
     const STATE_MAP = [
         'AL' => 'Alabama',
@@ -81,20 +79,20 @@ class EntityFactory
     private $slugify;
 
     /**
-     * @var DirectoryRepositoryInterface
+     * @var FileRepositoryInterface
      */
-    private $directoryRepository;
+    private $repository;
 
     /**
      * DocumentFactory constructor.
      *
-     * @param DirectoryRepositoryInterface $directoryRepository A DirectoryRepositoryInterface
-     *                                                          instance.
+     * @param FileRepositoryInterface $repository A FileRepositoryInterface
+     *                                            instance.
      */
-    public function __construct(DirectoryRepositoryInterface $directoryRepository)
+    public function __construct(FileRepositoryInterface $repository)
     {
         $this->slugify = new Slugify();
-        $this->directoryRepository = $directoryRepository;
+        $this->repository = $repository;
     }
 
     /**
@@ -187,7 +185,7 @@ class EntityFactory
      *
      * @return string
      */
-    private function generatePublicPath(string $name, Directory $parent = null)
+    private function generatePublicPath(string $name, Directory $parent = null): string
     {
         $parentPublicPath = '';
         if ($parent !== null) {
@@ -207,8 +205,11 @@ class EntityFactory
         /** @var Directory|null $parent */
         $parent = null;
         $idx = 0;
+        $checkPath = '';
+
         foreach ($path as $dirName) {
-            $dir = $this->directoryRepository->getByNameAndParent($dirName, $parent ? $parent->getId() : null);
+            $checkPath .= '/'. $dirName;
+            $dir = $this->repository->findByPublicPath($checkPath);
 
             if ($dir === null) {
                 break;

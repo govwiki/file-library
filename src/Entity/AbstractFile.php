@@ -69,7 +69,7 @@ abstract class AbstractFile implements \JsonSerializable
     /**
      * @var Directory|null
      *
-     * @ORM\ManyToOne(targetEntity="App\Entity\Directory", inversedBy="childes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Directory", inversedBy="childes", cascade={ "persist" })
      */
     protected $parent;
 
@@ -248,6 +248,7 @@ abstract class AbstractFile implements \JsonSerializable
             'slug' => $this->slug,
             'createdAt' => $this->createdAt->format('c'),
             'parent' => $this->parent ? $this->parent->getId() : null,
+            'publicPath' => $this->publicPath,
             'fileSize' => $this->fileSize,
         ];
     }

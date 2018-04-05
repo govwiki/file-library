@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Service\FileStorage;
-
-use App\Service\FileStorage\FileList\FileListInterface;
+namespace App\Service\FileStorage\FileList;
 
 /**
  * Class FilesystemFileList
  *
- * @package App\Service\FileStorage
+ * @package App\Service\FileStorage\FileList
  */
 class FilesystemFileList implements FileListInterface
 {

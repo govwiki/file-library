@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Repository\DirectoryRepositoryInterface;
+use App\Repository\FileRepositoryInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Tests\AppTestCase;
 
@@ -15,9 +15,9 @@ class EntityFactoryTest extends AppTestCase
 {
 
     /**
-     * @var DirectoryRepositoryInterface|MockObject
+     * @var FileRepositoryInterface|MockObject
      */
-    private $directoryRepository;
+    private $repository;
 
     /**
      * @var EntityFactory
@@ -64,10 +64,10 @@ class EntityFactoryTest extends AppTestCase
     {
         $path = [ 'some', 'dir' ];
 
-        $this->directoryRepository
+        $this->repository
             ->expects($this->once())
-            ->method('getByNameAndParent')
-            ->with($this->equalTo('some'), $this->isNull())
+            ->method('findByPublicPath')
+            ->with($this->equalTo('/some'))
             ->willReturn(null);
 
         $dir = $this->factory->createDirectoryByPath($path);
@@ -100,22 +100,22 @@ class EntityFactoryTest extends AppTestCase
 
         $path = [ 'some', 'deep', 'dir', 'dest' ];
 
-        $this->directoryRepository
+        $this->repository
             ->expects($this->at(0))
-            ->method('getByNameAndParent')
-            ->with($this->equalTo('some'), $this->isNull())
+            ->method('findByPublicPath')
+            ->with($this->equalTo('/some'))
             ->willReturn($someDir);
 
-        $this->directoryRepository
+        $this->repository
             ->expects($this->at(1))
-            ->method('getByNameAndParent')
-            ->with($this->equalTo('deep'), $this->equalTo(1))
+            ->method('findByPublicPath')
+            ->with($this->equalTo('/some/deep'))
             ->willReturn($deepDir);
 
-        $this->directoryRepository
+        $this->repository
             ->expects($this->at(2))
-            ->method('getByNameAndParent')
-            ->with($this->equalTo('dir'), $this->equalTo(2))
+            ->method('findByPublicPath')
+            ->with($this->equalTo('/some/deep/dir'))
             ->willReturn(null);
 
         $dir = $this->factory->createDirectoryByPath($path);
@@ -153,7 +153,7 @@ class EntityFactoryTest extends AppTestCase
      */
     protected function setUp()
     {
-        $this->directoryRepository = $this->createMockForInterface(DirectoryRepositoryInterface::class);
-        $this->factory = new EntityFactory($this->directoryRepository);
+        $this->repository = $this->createMockForInterface(FileRepositoryInterface::class);
+        $this->factory = new EntityFactory($this->repository);
     }
 }
