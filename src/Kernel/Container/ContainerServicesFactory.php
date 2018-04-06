@@ -154,10 +154,12 @@ class ContainerServicesFactory
          * @return EntityFactory
          */
         $container[EntityFactory::class] = function (ContainerInterface $container): EntityFactory {
-            /** @var FileRepositoryInterface $repository */
-            $repository = $container->get(FileRepositoryInterface::class);
+            /** @var FileRepositoryInterface $fileRepository */
+            $fileRepository = $container->get(FileRepositoryInterface::class);
+            /** @var UserRepositoryInterface $userRepository */
+            $userRepository = $container->get(UserRepositoryInterface::class);
 
-            return new EntityFactory($repository);
+            return new EntityFactory($fileRepository, $userRepository);
         };
 
         /**

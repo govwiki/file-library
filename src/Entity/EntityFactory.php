@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\FileRepositoryInterface;
+use App\Repository\UserRepositoryInterface;
 use Cocur\Slugify\Slugify;
 
 /**
@@ -81,18 +82,55 @@ class EntityFactory
     /**
      * @var FileRepositoryInterface
      */
-    private $repository;
+    private $fileRepository;
 
     /**
-     * DocumentFactory constructor.
-     *
-     * @param FileRepositoryInterface $repository A FileRepositoryInterface
-     *                                            instance.
+     * @var UserRepositoryInterface
      */
-    public function __construct(FileRepositoryInterface $repository)
-    {
+    private $userRepository;
+
+    /**
+     * EntityFactory constructor.
+     *
+     * @param FileRepositoryInterface $fileRepository A FileRepositoryInterface
+     *                                                instance.
+     * @param UserRepositoryInterface $userRepository A UserRepositoryInterface
+     *                                                instance.
+     */
+    public function __construct(
+        FileRepositoryInterface $fileRepository,
+        UserRepositoryInterface $userRepository
+    ) {
         $this->slugify = new Slugify();
-        $this->repository = $repository;
+        $this->fileRepository = $fileRepository;
+        $this->userRepository = $userRepository;
+    }
+
+    /**
+     * @param string $username      Username used for authentication.
+     * @param string $plainPassword Plain password.
+     * @param string $firstName     First name.
+     * @param string $lastName      Last name.
+     *
+     * @return User
+     */
+    public function createUser(
+        string $username,
+        string $plainPassword,
+        string $firstName,
+        string $lastName
+    ): User {
+        $existsUser = $this->userRepository->findByUsername($username);
+        if ($existsUser !== null) {
+            throw new \InvalidArgumentException(sprintf('User with username "%s" already exists', $username));
+        }
+
+        return new User(
+            $username,
+            password_hash($plainPassword, PASSWORD_BCRYPT),
+            $firstName,
+            $lastName
+        );
     }
 
     /**
@@ -209,7 +247,7 @@ class EntityFactory
 
         foreach ($path as $dirName) {
             $checkPath .= '/'. $dirName;
-            $dir = $this->repository->findByPublicPath($checkPath);
+            $dir = $this->fileRepository->findByPublicPath($checkPath);
 
             if ($dir === null) {
                 break;

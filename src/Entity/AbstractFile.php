@@ -252,4 +252,14 @@ abstract class AbstractFile implements \JsonSerializable
             'fileSize' => $this->fileSize,
         ];
     }
+
+    /**
+     * @return boolean
+     */
+    abstract public function isDirectory(): bool;
+
+    /**
+     * @return boolean
+     */
+    abstract public function isDocument(): bool;
 }

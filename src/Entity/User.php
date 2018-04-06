@@ -46,31 +46,41 @@ class User implements \Serializable
     private $lastName;
 
     /**
+     * @var boolean
+     *
+     * @ORM\Column(type="boolean")
+     */
+    private $superUser;
+
+    /**
      * User constructor.
      *
-     * @param string $username      Username used for authentication.
-     * @param string $plainPassword Plain password.
-     * @param string $firstName     First name.
-     * @param string $lastName      Last name.
+     * @param string  $username  Username used for authentication.
+     * @param string  $password  Plain password.
+     * @param string  $firstName First name.
+     * @param string  $lastName  Last name.
+     * @param boolean $superUser Super user flag.
      */
     public function __construct(
         string $username,
-        string $plainPassword,
+        string $password,
         string $firstName,
-        string $lastName
+        string $lastName,
+        bool $superUser = false
     ) {
         /** @psalm-suppress MixedMethodCall */
         Assert::lazy()
             ->that($username, 'username')->notBlank()->maxLength(255)
-            ->that($plainPassword, 'plainPassword')->minLength(6)->maxLength(255)
+            ->that($password, 'password')->minLength(6)->maxLength(255)
             ->that($firstName, 'firstName')->notBlank()->maxLength(255)
             ->that($lastName, 'lastName')->notBlank()->maxLength(255)
             ->tryAll();
 
         $this->username = $username;
-        $this->password = password_hash($plainPassword, PASSWORD_BCRYPT);
+        $this->password = $password;
         $this->firstName = $firstName;
         $this->lastName = $lastName;
+        $this->superUser = $superUser;
     }
 
     /**
@@ -179,6 +189,26 @@ class User implements \Serializable
     public function getFullName(): string
     {
         return $this->firstName .' '. $this->lastName;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isSuperUser(): bool
+    {
+        return $this->superUser;
+    }
+
+    /**
+     * @param boolean $superUser Super user flag.
+     *
+     * @return $this
+     */
+    public function setSuperUser(bool $superUser)
+    {
+        $this->superUser = $superUser;
+
+        return $this;
     }
 
     /**

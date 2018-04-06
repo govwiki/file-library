@@ -18,4 +18,11 @@ interface UserRepositoryInterface
      * @return User|null
      */
     public function findByUsername(string $username);
+
+    /**
+     * @param User $user Persisted user.
+     *
+     * @return void
+     */
+    public function persist(User $user);
 }

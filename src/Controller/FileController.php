@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Directory;
 use App\Entity\Document;
+use App\Entity\User;
 use App\Repository\FileRepositoryInterface;
 use App\Service\FileStorage\FileStorageException;
 use App\Service\FileStorage\FileStorageInterface;
@@ -117,7 +118,7 @@ class FileController extends AbstractController
             $directory = $this->repository->findBySlug($slug);
             if ($directory === null) {
                 return $response->withJson([
-                    'errors' => [
+                    'error' => [
                         'title'       => 'Directory not found',
                         'code'        => 'NOT_FOUND',
                         'description' => sprintf('Can\'t find directory by slug "%s"', $slug),
@@ -156,7 +157,7 @@ class FileController extends AbstractController
 
         if ($document === null) {
             return $response->withJson([
-                'errors' => [
+                'error' => [
                     'title' => 'Document not found',
                     'code' => 'NOT_FOUND',
                     'description' => sprintf('Can\'t find document by slug "%s"', $slug),
@@ -172,7 +173,7 @@ class FileController extends AbstractController
         $files = $request->getUploadedFiles();
         if (! isset($files['file'])) {
             return $response->withJson([
-                'errors' => [
+                'error' => [
                     'title' => 'Invalid request',
                     'code' => 'INVALID_REQUEST',
                     'description' => 'File should be uploaded with "file" key',
@@ -197,8 +198,6 @@ class FileController extends AbstractController
      * @param array    $args     Path arguments.
      *
      * @return ResponseInterface
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function remove(Request $request, Response $response, array $args): ResponseInterface
     {
@@ -207,13 +206,26 @@ class FileController extends AbstractController
 
         if ($document === null) {
             return $response->withJson([
-                'errors' => [
+                'error' => [
                     'title' => 'Document not found',
                     'code' => 'NOT_FOUND',
                     'description' => sprintf('Can\'t find document by slug "%s"', $slug),
                 ],
             ])
                 ->withStatus(404);
+        }
+
+        /** @var User $user */
+        $user = $request->getAttribute('user');
+        if ($document->isDirectory() && ! $user->isSuperUser()) {
+            return $response->withJson([
+                'error' => [
+                    'title' => 'Authorization fail',
+                    'code' => 'AUTHORIZATION_FAIL',
+                    'description' => sprintf('You don\'t authorized for deleting directory "%s"', $document->getPublicPath()),
+                ],
+            ])
+                ->withStatus(403);
         }
 
         $this->fileStorage->remove($document->getPublicPath());
@@ -240,7 +252,7 @@ class FileController extends AbstractController
 
         if (! \is_array($data) || ! isset($data['publicPath'])) {
             return $response->withJson([
-                'errors' => [
+                'error' => [
                     'title' => 'Invalid request',
                     'code' => 'INVALID_REQUEST',
                     'description' => 'Request body should be json object with "publicPath" property',
@@ -252,7 +264,7 @@ class FileController extends AbstractController
 
         if ($document === null) {
             return $response->withJson([
-                'errors' => [
+                'error' => [
                     'title' => 'Document not found',
                     'code' => 'NOT_FOUND',
                     'description' => sprintf('Can\'t find document by slug "%s"', $slug),
@@ -261,12 +273,25 @@ class FileController extends AbstractController
                 ->withStatus(404);
         }
 
+        /** @var User $user */
+        $user = $request->getAttribute('user');
+        if ($document->isDirectory() && ! $user->isSuperUser()) {
+            return $response->withJson([
+                'error' => [
+                    'title' => 'Authorization fail',
+                    'code' => 'AUTHORIZATION_FAIL',
+                    'description' => sprintf('You don\'t authorized for deleting directory "%s"', $document->getPublicPath()),
+                ],
+            ])
+                ->withStatus(403);
+        }
+
         $publicPath = $data['publicPath'];
         try {
             $this->fileStorage->move($document->getPublicPath(), $publicPath);
         } catch (FileStorageException $exception) {
             return $response->withJson([
-                'errors' => [
+                'error' => [
                     'title' => 'Can\'t move',
                     'code' => 'CANT_MOVE',
                     'description' => sprintf('Can\'t move file "%s" to "%s"', $slug, $publicPath),

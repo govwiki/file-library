@@ -79,4 +79,20 @@ class Document extends AbstractFile
 
         return $data;
     }
+
+    /**
+     * @return boolean
+     */
+    public function isDirectory(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isDocument(): bool
+    {
+        return true;
+    }
 }

@@ -39,6 +39,10 @@ $console->addCommands([
         $container->get(\App\Service\FileStorage\FilesystemFileStorage::class)
     ),
     new \App\Command\FixtureCommand($em, ROOT_PATH . '/db/fixtures'),
+    new \App\Command\AddUserCommand(
+        $container->get(\App\Entity\EntityFactory::class),
+        $container->get(\App\Repository\UserRepositoryInterface::class)
+    ),
 
     new \Doctrine\DBAL\Migrations\Tools\Console\Command\DiffCommand(),
     new \Doctrine\DBAL\Migrations\Tools\Console\Command\ExecuteCommand(),

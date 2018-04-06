@@ -101,7 +101,7 @@ class ORMFileStorageIndex implements FileStorageIndexInterface
         $file = $repository->findByPublicPath($srcPublicPath);
         if ($file !== null) {
             $this->em->remove($file);
-            $this->index($destPublicPath, $file->getFileSize());
+            $this->index($destPublicPath, false, $file->getFileSize());
         }
 
         return $this;

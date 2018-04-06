@@ -112,6 +112,7 @@
           dtTable.draw();
           renameModal.hide();
         })
+        .fail(function (xhr) { alert(JSON.parse(xhr.responseText).error.description) });
     });
 
     $table.on('click', 'tbody tr', function (event) {
@@ -141,7 +142,9 @@
         api({
           url: '/files/' + data.slug,
           method: 'DELETE'
-        }).then(function () { dtTable.draw() });
+        })
+          .then(function () { dtTable.draw() })
+          .fail(function (xhr) { alert(JSON.parse(xhr.responseText).error.description) });
       }
     });
 
@@ -166,6 +169,7 @@
           dtTable.draw();
           uploadModal.hide();
         })
+        .fail(function (xhr) { alert(JSON.parse(xhr.responseText).error.description) });
     });
 
     $('#document-add').click(function (event) {
@@ -181,7 +185,7 @@
       type: 'POST'
     }, cfg);
 
-    return $.ajax(_cfg).fail(function (xhr) { console.log(JSON.parse(xhr.responseText)) })
+    return $.ajax(_cfg)
   }
 
   function Modal(selector) {

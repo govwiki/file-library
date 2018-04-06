@@ -24,4 +24,15 @@ class UserRepository extends EntityRepository implements UserRepositoryInterface
         /** @psalm-suppress LessSpecificReturnStatement */
         return $this->find($username);
     }
+
+    /**
+     * @param User $user Persisted user.
+     *
+     * @return void
+     */
+    public function persist(User $user)
+    {
+        $this->_em->persist($user);
+        $this->_em->flush($user);
+    }
 }

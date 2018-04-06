@@ -96,8 +96,9 @@ class FilesystemFileStorage implements FileStorageInterface
      */
     public function remove(string $publicPath)
     {
-        $absPath = $this->buildAbsPath($publicPath);
-        if (! \file_exists($absPath)) {
+        try {
+            $absPath = $this->buildAbsPath($publicPath);
+        } catch (FileStorageException $exception) {
             return;
         }
 
