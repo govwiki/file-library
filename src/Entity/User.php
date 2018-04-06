@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * @package App\Entity
  */
-class User implements \Serializable
+class User implements \Serializable, \JsonSerializable
 {
 
     /**
@@ -251,5 +251,20 @@ class User implements \Serializable
         $this->firstName = (string) $data[1];
         /** @psalm-suppress MixedArrayAccess */
         $this->lastName = (string) $data[2];
+    }
+
+    /**
+     * Specify data which should be serialized to JSON.
+     *
+     * @return array
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+            'username' => $this->username,
+            'firstName' => $this->firstName,
+            'lastName' => $this->lastName,
+            'isSuperUser' => $this->superUser,
+        ];
     }
 }

@@ -74,6 +74,13 @@ abstract class AbstractFile implements \JsonSerializable
     protected $parent;
 
     /**
+     * @var boolean
+     *
+     * @ORM\Column(type="boolean")
+     */
+    protected $hidden = false;
+
+    /**
      * AbstractFile constructor.
      *
      * @param string         $name       A filename.
@@ -231,6 +238,26 @@ abstract class AbstractFile implements \JsonSerializable
     public function setParent(Directory $parent = null)
     {
         $this->parent = $parent;
+
+        return $this;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isHidden(): bool
+    {
+        return $this->hidden;
+    }
+
+    /**
+     * @param boolean $hidden Is file hidden or not.
+     *
+     * @return $this
+     */
+    public function setHidden(bool $hidden)
+    {
+        $this->hidden = $hidden;
 
         return $this;
     }

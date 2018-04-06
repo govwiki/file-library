@@ -78,6 +78,7 @@ class FileController extends AbstractController
             case $file instanceof Directory:
                 return $this->renderer->render($response, 'index.twig', [
                     'currentDir' => $file,
+                    'userJson' => json_encode($request->getAttribute('user')),
                 ]);
 
             case $file instanceof Document:
@@ -106,8 +107,6 @@ class FileController extends AbstractController
      * @param array    $args     Path arguments.
      *
      * @return ResponseInterface
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function files(Request $request, Response $response, array $args): ResponseInterface
     {
@@ -131,6 +130,7 @@ class FileController extends AbstractController
         }
 
         $list = $this->fileStorage->listFiles($publicPath)
+            ->showHidden($request->getAttribute('user') instanceof User)
             ->setLimit($request->getQueryParam('limit'))
             ->setOffset($request->getQueryParam('offset'))
             ->orderBy($request->getQueryParam('order'));

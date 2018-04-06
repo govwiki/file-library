@@ -59,7 +59,8 @@
     {{ parent() }}
     <script>
       window.documents = {
-        showActions: {{ user is defined ? 'true' : 'false' }}
+        showActions: {{ user is defined and user.superUser ? 'true' : 'false' }},
+        user: JSON.parse('{{ userJson|e('js') }}')
       };
     </script>
     <script src="/documents.js"></script>

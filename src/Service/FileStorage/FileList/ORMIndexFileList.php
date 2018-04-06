@@ -62,6 +62,23 @@ class ORMIndexFileList implements FileListInterface
     }
 
     /**
+     * @param boolean $showHidden Should hidden files displayed too.
+     *
+     * @return $this
+     */
+    public function showHidden(bool $showHidden)
+    {
+        $alias = $this->qb->getRootAliases()[0];
+
+        if (! $showHidden) {
+            $this->qb->andWhere($alias .'.hidden <> 1');
+            $this->paginator = null;
+        }
+
+        return $this;
+    }
+
+    /**
      * @param array $fields Array of fields used for ordering.
      * @psalm-param array<string, string> $fields
      *
@@ -73,7 +90,7 @@ class ORMIndexFileList implements FileListInterface
 
         // todo, priority: low. Clear order by statement before add new one
         foreach ($fields as $field => $order) {
-            if (! in_array($field, self::SORTED_FIELDS, true)) {
+            if (! \in_array($field, self::SORTED_FIELDS, true)) {
                 throw new \InvalidArgumentException(sprintf(
                     'Unknown field "%s" is using for sorting. Expects one of: %s',
                     $field,

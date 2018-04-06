@@ -69,6 +69,19 @@ class FilesystemFileList implements FileListInterface
     }
 
     /**
+     * @param boolean $showHidden Should hidden files displayed too.
+     *
+     * @return $this
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function showHidden(bool $showHidden)
+    {
+        // don't do anything.
+        return $this;
+    }
+
+    /**
      * Count elements of an object.
      *
      * @return integer

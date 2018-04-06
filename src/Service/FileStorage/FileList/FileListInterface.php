@@ -31,4 +31,11 @@ interface FileListInterface extends \Countable, \IteratorAggregate
      * @return $this
      */
     public function orderBy(array $fields);
+
+    /**
+     * @param boolean $showHidden Should hidden files displayed too.
+     *
+     * @return $this
+     */
+    public function showHidden(bool $showHidden);
 }
