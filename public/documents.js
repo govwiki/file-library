@@ -54,7 +54,11 @@
 
       columns.push({
         title: 'Action',
-        data: function () {
+        data: function (data, type, row) {
+          if (row.type === 'directory' && ! window.documents.user.isSuperUser) {
+            return
+          }
+
           return $.map(ACTIONS, function (action) {
             return '<a class="'+ action.class +'" href="#"><i class="fa '+ action.icon +'"></i> '+ action.title +'</a>'
           }).join('');
