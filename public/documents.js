@@ -54,8 +54,8 @@
 
       columns.push({
         title: 'Action',
-        data: function (data, type, row) {
-          if (row.type === 'directory' && ! window.documents.user.isSuperUser) {
+        data: function (data) {
+          if (data.type === 'directory' && ! window.documents.user.isSuperUser) {
             return
           }
 
