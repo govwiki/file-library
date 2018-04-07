@@ -86,7 +86,6 @@ class AddUserCommand extends Command
         $password = trim((string) $input->getArgument('password'));
         $firstName = trim((string) $input->getArgument('firstName'));
         $lastName = trim((string) $input->getArgument('lastName'));
-        $superUser = $input->hasOption('super');
 
         $user = $this->factory->createUser(
             $username,
@@ -95,7 +94,7 @@ class AddUserCommand extends Command
             $lastName
         );
 
-        if ($superUser) {
+        if ($input->getOption('super')) {
             $user->setSuperUser(true);
         }
 

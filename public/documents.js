@@ -56,7 +56,7 @@
         title: 'Action',
         data: function (data) {
           if (data.type === 'directory' && ! window.documents.user.isSuperUser) {
-            return
+            return '';
           }
 
           return $.map(ACTIONS, function (action) {
