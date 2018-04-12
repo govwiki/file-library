@@ -83,7 +83,7 @@ class ContainerControllersFactory
             /** @var array{domain: string} $settings */
             $settings = $container->get('settings');
 
-            if (! \is_array($settings) || ! isset($settings['domain'])) {
+            if (! isset($settings['domain'])) {
                 throw new \InvalidArgumentException('Required settings options "domain" is not set');
             }
 

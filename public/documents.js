@@ -89,7 +89,7 @@
       columns.push({
         title: 'Action',
         data: function (data) {
-          if (data.type === 'directory' && ! window.documents.user.isSuperUser) {
+          if (data.type === 'directory') {
             return '';
           }
 
