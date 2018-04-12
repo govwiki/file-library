@@ -23,9 +23,16 @@ class AuthorizationCheckMiddleware
      */
     public function __invoke(Request $request, Response $response, callable $next)
     {
+        /** @var User|null $user */
         $user = $request->getAttribute('user');
+
         if (! $user instanceof User) {
-            return $response
+            return $response->withJson([
+                'error' => [
+                    'title' => 'Authorization fail',
+                    'code' => 'AUTHORIZATION_FAIL',
+                ],
+            ])
                 ->withStatus(403);
         }
 

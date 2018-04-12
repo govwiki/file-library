@@ -1,3 +1,9 @@
+#
+# Use .env file
+#
+include .env
+export $(shell sed 's/=.*//' .env)
+
 include makefile.config
 
 #
@@ -16,9 +22,6 @@ endif
 ifndef DOCKER_COMPOSE
 $(error You should install 'docker-compose' first)
 endif
-
-phinx_config: phinx.yml.dist
-	@sed -- 's/host: ~/host: $(DB_HOST)/; s/name: ~/name: $(DB_NAME)/; s/user: ~/user: $(DB_USER)/; s/pass: ~/pass: $(DB_PASSWORD)/' phinx.yml.dist > phinx.yml
 
 .PHONY: start db-cli app-cli node-cli node-restart
 

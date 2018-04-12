@@ -235,7 +235,7 @@ class User implements \Serializable, \JsonSerializable
     public function unserialize($serialized) // @codingStandardsIgnoreLine
     {
         /** @psalm-suppress MixedAssignment */
-        $data = unserialize($serialized, [ 'allowed_classes' => static::class ]);
+        $data = unserialize($serialized, [ 'allowed_classes' => [ static::class ] ]);
 
         if (! is_array($data) || (count($data) !== 4)) {
             throw new \RuntimeException(sprintf(

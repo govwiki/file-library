@@ -121,17 +121,20 @@ class SecurityController extends AbstractController
     private function getReferer(Request $request): string
     {
         $host = $request->getUri()->getHost();
+        /** @var string $referer */
         $referer = $request->getServerParam('HTTP_REFERER');
 
         if ((stripos($host, $this->domain) === false) || ($referer === null)) {
             return $this->router->pathFor('types');
         }
 
+        /** @var string $refererPath */
         $refererPath = parse_url($referer, PHP_URL_PATH);
 
         if (strcasecmp($refererPath, $this->router->pathFor('login')) !== 0) {
             $this->session->set(self::SESSION_REFERER_KEY, $referer);
         } else {
+            /** @var string $referer */
             $referer = $this->session->get(self::SESSION_REFERER_KEY);
         }
 

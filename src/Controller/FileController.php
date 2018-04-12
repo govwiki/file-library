@@ -2,11 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\AbstractFile;
 use App\Entity\Directory;
 use App\Entity\Document;
 use App\Entity\User;
 use App\Repository\FileRepositoryInterface;
-use App\Service\FileStorage\FileStorageException;
+use App\Service\DocumentMover\DocumentMoverException;
+use App\Service\DocumentMover\DocumentMoverService;
 use App\Service\FileStorage\FileStorageInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UploadedFileInterface;
@@ -39,21 +41,31 @@ class FileController extends AbstractController
     private $fileStorage;
 
     /**
+     * @var DocumentMoverService
+     */
+    private $documentMover;
+
+    /**
      * DocumentController constructor.
      *
-     * @param Twig                    $renderer    A template renderer.
-     * @param FileRepositoryInterface $repository  A FileRepositoryInterface
-     *                                            instance.
-     * @param FileStorageInterface    $fileStorage A FileStorageInterface instance.
+     * @param Twig                    $renderer      A template renderer.
+     * @param FileRepositoryInterface $repository    A FileRepositoryInterface
+     *                                               instance.
+     * @param FileStorageInterface    $fileStorage   A FileStorageInterface
+     *                                               instance.
+     * @param DocumentMoverService    $documentMover A DocumentMoverService
+     *                                               instance.
      */
     public function __construct(
         Twig $renderer,
         FileRepositoryInterface $repository,
-        FileStorageInterface $fileStorage
+        FileStorageInterface $fileStorage,
+        DocumentMoverService $documentMover
     ) {
         $this->renderer = $renderer;
         $this->repository = $repository;
         $this->fileStorage = $fileStorage;
+        $this->documentMover = $documentMover;
     }
 
     /**
@@ -73,12 +85,18 @@ class FileController extends AbstractController
             $file = $this->repository->findBySlug($slug);
         }
 
+        $topLevelDirNames = [];
+        if ($request->getAttribute('user') instanceof User) {
+            $topLevelDirNames = $this->repository->getTopLevelDirNames();
+        }
+
         switch (true) {
             case ($file === null) && ($slug === null):
             case $file instanceof Directory:
                 return $this->renderer->render($response, 'index.twig', [
                     'currentDir' => $file,
                     'userJson' => json_encode($request->getAttribute('user')),
+                    'topLevelDirNames' => $topLevelDirNames,
                 ]);
 
             case $file instanceof Document:
@@ -152,18 +170,14 @@ class FileController extends AbstractController
      */
     public function upload(Request $request, Response $response, array $args): ResponseInterface
     {
-        $slug = $this->getArgument($args, 'slug');
-        $document = $this->repository->findBySlug($slug);
+        $directory = $this->getFileFromArgs($args);
 
-        if ($document === null) {
-            return $response->withJson([
-                'error' => [
-                    'title' => 'Document not found',
-                    'code' => 'NOT_FOUND',
-                    'description' => sprintf('Can\'t find document by slug "%s"', $slug),
-                ],
-            ])
-                ->withStatus(404);
+        if (! $directory->isDirectory()) {
+            throw new ApiHttpException(
+                'Invalid directory',
+                'INVALID_DIRECTORY',
+                'Try to upload file not in directory'
+            );
         }
 
         /**
@@ -185,7 +199,27 @@ class FileController extends AbstractController
         /** @var UploadedFileInterface $file */
         $file = $files['file'];
 
-        $this->fileStorage->store($file->getStream(), $document->getPublicPath() . '/'. $file->getClientFilename());
+        $this->fileStorage->store($file->getStream(), $directory->getPublicPath() . '/'. $file->getClientFilename());
+
+        return $response
+            ->withHeader('Content-Type', 'application/json;charset=utf-8')
+            ->withStatus(204);
+    }
+
+    /**
+     * @param Request  $request  A http request.
+     * @param Response $response A http response.
+     * @param array    $args     Path arguments.
+     *
+     * @return ResponseInterface
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameters)
+     */
+    public function remove(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $document = $this->getFileFromArgs($args);
+
+        $this->fileStorage->remove($document->getPublicPath());
 
         return $response
             ->withHeader('Content-Type', 'application/json;charset=utf-8')
@@ -199,36 +233,41 @@ class FileController extends AbstractController
      *
      * @return ResponseInterface
      */
-    public function remove(Request $request, Response $response, array $args): ResponseInterface
+    public function move(Request $request, Response $response, array $args): ResponseInterface
     {
-        $slug = $this->getArgument($args, 'slug');
-        $document = $this->repository->findBySlug($slug);
+        /** @var Document $file */
+        $file = $this->getFileFromArgs($args);
 
-        if ($document === null) {
-            return $response->withJson([
-                'error' => [
-                    'title' => 'Document not found',
-                    'code' => 'NOT_FOUND',
-                    'description' => sprintf('Can\'t find document by slug "%s"', $slug),
-                ],
-            ])
-                ->withStatus(404);
+        if (! $file->isDocument()) {
+            throw new ApiHttpException(
+                'Invalid document',
+                'INVALID_DOCUMENT',
+                'Try to move not a regular document'
+            );
         }
 
-        /** @var User $user */
-        $user = $request->getAttribute('user');
-        if ($document->isDirectory() && ! $user->isSuperUser()) {
-            return $response->withJson([
-                'error' => [
-                    'title' => 'Authorization fail',
-                    'code' => 'AUTHORIZATION_FAIL',
-                    'description' => sprintf('You don\'t authorized for deleting directory "%s"', $document->getPublicPath()),
-                ],
-            ])
-                ->withStatus(403);
+        $newTopLevelDirId = $this->getRequestsParameters($request, [ 'topLevelDir' ])['topLevelDir'];
+        /** @var Directory|null $newTopLevelDir */
+        $newTopLevelDir = $this->repository->findById($newTopLevelDirId);
+
+        if (($newTopLevelDir === null) || ! $newTopLevelDir->isDirectory()) {
+            throw new ApiHttpException(
+                'Invalid directory',
+                'INVALID_DIRECTORY',
+                'Try to move document in to unknown directory',
+                404
+            );
         }
 
-        $this->fileStorage->remove($document->getPublicPath());
+        try {
+            $this->documentMover->move($file, $newTopLevelDir);
+        } catch (DocumentMoverException $exception) {
+            throw new ApiHttpException(
+                'Can\'t move',
+                'CANT_MOVE',
+                $exception->getMessage()
+            );
+        }
 
         return $response
             ->withHeader('Content-Type', 'application/json;charset=utf-8')
@@ -244,64 +283,97 @@ class FileController extends AbstractController
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function update(Request $request, Response $response, array $args): ResponseInterface
+    public function rename(Request $request, Response $response, array $args): ResponseInterface
     {
-        $slug = $this->getArgument($args, 'slug');
-        /** @var array{publicPath: string} $data */
-        $data = $request->getParsedBody();
+        /** @var Document $file */
+        $file = $this->getFileFromArgs($args);
 
-        if (! \is_array($data) || ! isset($data['publicPath'])) {
-            return $response->withJson([
-                'error' => [
-                    'title' => 'Invalid request',
-                    'code' => 'INVALID_REQUEST',
-                    'description' => 'Request body should be json object with "publicPath" property',
-                ],
-            ])
-                ->withStatus(404);
-        }
-        $document = $this->repository->findBySlug($slug);
-
-        if ($document === null) {
-            return $response->withJson([
-                'error' => [
-                    'title' => 'Document not found',
-                    'code' => 'NOT_FOUND',
-                    'description' => sprintf('Can\'t find document by slug "%s"', $slug),
-                ],
-            ])
-                ->withStatus(404);
+        if (! $file->isDocument()) {
+            throw new ApiHttpException(
+                'Invalid document',
+                'INVALID_DOCUMENT',
+                'Try to move not a regular document'
+            );
         }
 
-        /** @var User $user */
-        $user = $request->getAttribute('user');
-        if ($document->isDirectory() && ! $user->isSuperUser()) {
-            return $response->withJson([
-                'error' => [
-                    'title' => 'Authorization fail',
-                    'code' => 'AUTHORIZATION_FAIL',
-                    'description' => sprintf('You don\'t authorized for deleting directory "%s"', $document->getPublicPath()),
-                ],
-            ])
-                ->withStatus(403);
-        }
+        $newName = $this->getRequestsParameters($request, [ 'name' ])['name'];
 
-        $publicPath = $data['publicPath'];
         try {
-            $this->fileStorage->move($document->getPublicPath(), $publicPath);
-        } catch (FileStorageException $exception) {
-            return $response->withJson([
-                'error' => [
-                    'title' => 'Can\'t move',
-                    'code' => 'CANT_MOVE',
-                    'description' => sprintf('Can\'t move file "%s" to "%s"', $slug, $publicPath),
-                ],
-            ])
-                ->withStatus(404);
+            $this->documentMover->move($file, $file->getTopLevelDir(), $newName);
+        } catch (DocumentMoverException $exception) {
+            throw new ApiHttpException(
+                'Can\'t rename',
+                'CANT_RENAME',
+                $exception->getMessage()
+            );
         }
 
         return $response
             ->withHeader('Content-Type', 'application/json;charset=utf-8')
             ->withStatus(204);
+    }
+
+    /**
+     * @param array $args Path arguments.
+     *
+     * @return AbstractFile
+     */
+    private function getFileFromArgs(array $args): AbstractFile
+    {
+        $slug = $this->getArgument($args, 'slug');
+        $file = $this->repository->findBySlug($slug);
+
+        if ($file === null) {
+            throw new ApiHttpException(
+                'Document not found',
+                'NOT_FOUND',
+                sprintf('Can\'t find document by slug "%s"', $slug),
+                404
+            );
+        }
+
+        return $file;
+    }
+
+    /**
+     * @param Request  $request A http request.
+     * @param string[] $params  Expected parameters.
+     *
+     * @return array
+     */
+    private function getRequestsParameters(Request $request, array $params): array
+    {
+        /** @var array<string, mixed> $results */
+        $results = [];
+        $data = $request->getParsedBody();
+        if (! \is_array($data)) {
+            throw new ApiHttpException(
+                'Invalid request',
+                'INVALID_REQUEST',
+                sprintf(
+                    'Request body should be json object with properties: %s',
+                    implode(', ', $params)
+                ),
+                404
+            );
+        }
+
+        foreach ($params as $param) {
+            if (! isset($data[$param])) {
+                throw new ApiHttpException(
+                    'Invalid request',
+                    'INVALID_REQUEST',
+                    sprintf(
+                        'Request body should be json object with properties: %s',
+                        implode(', ', $params)
+                    ),
+                    404
+                );
+            }
+
+            $results[$param] = $data[$param];
+        }
+
+        return $results;
     }
 }

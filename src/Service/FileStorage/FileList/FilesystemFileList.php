@@ -23,7 +23,7 @@ class FilesystemFileList implements FileListInterface
     public function __construct(string $path)
     {
         $this->iterator = new \DirectoryIterator($path);
-        $this->iterator = new \CallbackFilterIterator($this->iterator, function (\DirectoryIterator $file) {
+        $this->iterator = new \CallbackFilterIterator($this->iterator, function (\DirectoryIterator $file): bool {
             return ! $file->isDot();
         });
     }

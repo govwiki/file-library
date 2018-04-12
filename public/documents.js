@@ -1,4 +1,8 @@
 (function ($) {
+  var dtTable;
+  var moveModal;
+  var renameModal;
+
   var SIZE_POSTFIX = [
     'Bytes',
     'KB',
@@ -6,6 +10,31 @@
     'GB',
     'TB'
   ];
+
+  var CLICK_HANDLERS = {
+    'tbody tr': function (data) {
+      window.location = '/' + data.slug;
+    },
+    '.document--action__move': function (data) {
+      moveModal.$('#move-form').attr('action', '/files/' + data.slug + '/move');
+      moveModal.setTitle('Move "'+ data.name +'"').show();
+    },
+    '.document--action__rename': function (data) {
+      renameModal.$('#document-name').val(data.name);
+      renameModal.$('#rename-form').attr('action', '/files/' + data.slug + '/rename');
+      renameModal.setTitle('Rename "' + data.name + '"').show();
+    },
+    '.document--action__remove': function (data) {
+      if (confirm('Remove document "'+ data.name +'"')) {
+        api({
+          url: '/files/' + data.slug,
+          method: 'DELETE'
+        })
+          .then(function () { dtTable.draw() })
+          .fail(function (xhr) { console.log(xhr); alert(JSON.parse(xhr.responseText).error.description) });
+      }
+    }
+  };
 
   $(function () {
     var columns = [
@@ -41,6 +70,11 @@
     if (documents.showActions) {
       var ACTIONS = [
         {
+          'class': 'document-action document--action__move',
+          'icon': 'fa-folder-open',
+          'title': 'Move'
+        },
+        {
           'class': 'document-action document--action__rename',
           'icon': 'fa-edit',
           'title': 'Rename'
@@ -69,7 +103,7 @@
     }
 
     var $table = $('#documents-table');
-    var dtTable = $table.DataTable({
+    dtTable = $table.DataTable({
       autoWidth: false,
       searching: false,
       info: false,
@@ -99,8 +133,10 @@
       }
     });
 
-    var renameModal = new Modal('#document-rename-modal');
-    var $renameForm = $('#rename-form');
+    renameModal = new Modal('#document-rename-modal');
+    moveModal = new Modal('#document-move-modal');
+
+    var $renameForm = renameModal.$('#rename-form');
     var $renameInput = $renameForm.find('#document-name');
 
     $renameForm.submit(function (event) {
@@ -110,7 +146,7 @@
       api({
         url: event.target.getAttribute('action'),
         method: 'PUT',
-        data: { publicPath: $renameInput.val() }
+        data: { name: $renameInput.val() }
       })
         .then(function () {
           dtTable.draw();
@@ -119,41 +155,42 @@
         .fail(function (xhr) { alert(JSON.parse(xhr.responseText).error.description) });
     });
 
-    $table.on('click', 'tbody tr', function (event) {
-      event.stopPropagation();
+    for (var selector in CLICK_HANDLERS) {
+      if (CLICK_HANDLERS.hasOwnProperty(selector)) {
+        (function (selector) {
+          $table.on('click', selector, function (event) {
+            event.stopPropagation();
+            event.preventDefault();
 
-      var data = dtTable.row($(this).closest('tr')).data();
-      window.location = '/' + data.slug;
-    });
+            var data = dtTable.row($(this).closest('tr')).data();
 
-    $table.on('click', '.document--action__rename', function (event) {
-      event.stopPropagation();
-      event.preventDefault();
-
-      var data = dtTable.row($(this).closest('tr')).data();
-      $renameInput.val(data.publicPath);
-
-      $renameForm.attr('action', '/files/' + data.slug);
-      renameModal.setTitle('Rename "'+ data.name +'"').show();
-    });
-
-    $table.on('click', '.document--action__remove', function (event) {
-      event.stopPropagation();
-      event.preventDefault();
-
-      var data = dtTable.row($(this).closest('tr')).data();
-      if (confirm('Remove document "'+ data.name +'"')) {
-        api({
-          url: '/files/' + data.slug,
-          method: 'DELETE'
-        })
-          .then(function () { dtTable.draw() })
-          .fail(function (xhr) { alert(JSON.parse(xhr.responseText).error.description) });
+            CLICK_HANDLERS[selector](data);
+          })
+        })(selector);
       }
+    }
+
+    var $moveForm = moveModal.$('#move-form');
+    var $directorySelector = $moveForm.find('#directory');
+
+    $moveForm.submit(function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+
+      api({
+        url: event.target.getAttribute('action'),
+        method: 'PUT',
+        data: { topLevelDir: $directorySelector.val() }
+      })
+        .then(function () {
+          dtTable.draw();
+          moveModal.hide();
+        })
+        .fail(function (xhr) { alert(JSON.parse(xhr.responseText).error.description) });
     });
 
     var uploadModal = new Modal('#document-add-modal');
-    var $uploadForm = $('#upload-form');
+    var $uploadForm = uploadModal.$('#upload-form');
 
     $uploadForm.submit(function (event) {
       event.stopPropagation();
@@ -214,4 +251,7 @@
 
     return this;
   };
+  Modal.prototype.$ = function find(selector) {
+    return this._$el.find(selector)
+  }
 })(jQuery);

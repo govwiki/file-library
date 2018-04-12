@@ -7,6 +7,7 @@ use App\Controller\FileController;
 use App\Controller\SecurityController;
 use App\Repository\FileRepositoryInterface;
 use App\Service\Authenticator\AuthenticatorInterface;
+use App\Service\DocumentMover\DocumentMoverService;
 use App\Service\FileStorage\FileStorageInterface;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouterInterface;
@@ -44,6 +45,13 @@ class ContainerControllersFactory
             };
         }
 
+        $container[DocumentMoverService::class] = function (ContainerInterface $container): DocumentMoverService {
+            /** @var FileStorageInterface $fileStorage */
+            $fileStorage = $container->get(FileStorageInterface::class);
+
+            return new DocumentMoverService($fileStorage);
+        };
+
         /**
          * File controller.
          *
@@ -58,8 +66,10 @@ class ContainerControllersFactory
             $repository = $container->get(FileRepositoryInterface::class);
             /** @var FileStorageInterface $fileStorage */
             $fileStorage = $container->get(FileStorageInterface::class);
+            /** @var DocumentMoverService $mover */
+            $mover = $container->get(DocumentMoverService::class);
 
-            return new FileController($view, $repository, $fileStorage);
+            return new FileController($view, $repository, $fileStorage, $mover);
         };
 
         /**
@@ -70,6 +80,13 @@ class ContainerControllersFactory
          * @return SecurityController
          */
         $container[SecurityController::class] = function (ContainerInterface $container): SecurityController {
+            /** @var array{domain: string} $settings */
+            $settings = $container->get('settings');
+
+            if (! \is_array($settings) || ! isset($settings['domain'])) {
+                throw new \InvalidArgumentException('Required settings options "domain" is not set');
+            }
+
             /** @var AuthenticatorInterface $authenticator */
             $authenticator = $container->get(AuthenticatorInterface::class);
             /** @var Twig $view */
@@ -79,7 +96,7 @@ class ContainerControllersFactory
             /** @var Helper $session */
             $session = $container->get('session');
             /** @var string $domain */
-            $domain = $container->get('settings')['domain'];
+            $domain = $settings['domain'];
 
             return new SecurityController($authenticator, $view, $router, $session, $domain);
         };

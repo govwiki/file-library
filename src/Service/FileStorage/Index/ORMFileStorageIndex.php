@@ -8,6 +8,7 @@ use App\Repository\FileRepositoryInterface;
 use App\Service\FileStorage\FileList\FileListInterface;
 use App\Service\FileStorage\FileList\ORMIndexFileList;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 
 /**
  * Class ORMFileStorageIndex
@@ -95,6 +96,10 @@ class ORMFileStorageIndex implements FileStorageIndexInterface
      */
     public function move(string $srcPublicPath, string $destPublicPath)
     {
+        if ($srcPublicPath === $destPublicPath) {
+            return $this;
+        }
+
         /** @var FileRepositoryInterface $repository */
         $repository = $this->em->getRepository(AbstractFile::class);
 
@@ -135,6 +140,7 @@ class ORMFileStorageIndex implements FileStorageIndexInterface
     public function clear()
     {
         $connection = $this->em->getConnection();
+        /** @var ClassMetadataInfo $metadata */
         $metadata = $this->em->getClassMetadata(AbstractFile::class);
 
         $connection->exec('SET FOREIGN_KEY_CHECKS = 0');

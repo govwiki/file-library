@@ -12,8 +12,6 @@ use App\Entity\Directory;
 interface DirectoryRepositoryInterface
 {
 
-    public function getByPublicPath(string $publicPath);
-
     /**
      * Get directory by name and parent.
      *

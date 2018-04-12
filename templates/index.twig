@@ -18,6 +18,29 @@
         </div>
 
         {%- embed './Partial/modal.twig' with {
+            id: 'document-move-modal',
+            title: 'Move document'
+        } -%}
+            {% block content %}
+                <form id="move-form">
+                    <div>
+                        <label for="directory">Destination directory</label>
+                        <select id="directory" class="form-control" name="directory">
+                            {%- for id, name in topLevelDirNames -%}
+                                <option value="{{ id }}">{{ name }}</option>
+                            {%- endfor -%}
+                        </select>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-borderless" data-modal-close>Cancel</button>
+                        <button type="submit" class="btn">Move</button>
+                    </div>
+                </form>
+            {% endblock content %}
+        {%- endembed -%}
+
+        {%- embed './Partial/modal.twig' with {
             id: 'document-rename-modal',
             title: 'Rename document'
         } -%}
@@ -40,7 +63,7 @@
             title: 'Add new document'
         } -%}
             {% block content %}
-                <form id="upload-form" action="{{ path_for('files-upload', { slug: currentDir.slug }) }}">
+                <form id="upload-form" action="{{ path_for('file-upload', { slug: currentDir.slug }) }}">
                     <div>
                         <input type="file" id="document-file" class="form-control" name="file">
                     </div>

@@ -29,9 +29,10 @@ class Routes
         $app->get('/logout', SecurityController::class .':logout')->setName('logout');
 
         $app->group('', function () use ($app) {
-            $app->delete('/files/{slug}', FileController::class . ':remove')->setName('files-remove');
-            $app->post('/files/{slug}/upload', FileController::class . ':upload')->setName('files-upload');
-            $app->put('/files/{slug}', FileController::class . ':update')->setName('files-update');
+            $app->delete('/files/{slug}', FileController::class . ':remove')->setName('file-remove');
+            $app->post('/files/{slug}/upload', FileController::class . ':upload')->setName('file-upload');
+            $app->put('/files/{slug}/rename', FileController::class . ':rename')->setName('file-rename');
+            $app->put('/files/{slug}/move', FileController::class . ':move')->setName('file-move');
         })->add(new AuthorizationCheckMiddleware());
 
         $app->get('/files/{slug}', FileController::class . ':files')->setName('files');

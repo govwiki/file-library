@@ -48,7 +48,7 @@ class IndexedFileStorage implements FileStorageInterface
     {
         $this->fileStorage->store($stream, $destPublicPath);
         $this->fileStorageIndex
-            ->index($destPublicPath, false, $stream->getSize())
+            ->index($destPublicPath, false, $stream->getSize() ?? 0)
             ->flush();
     }
 

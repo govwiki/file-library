@@ -202,18 +202,24 @@ class EntityFactory
      * @param string[] $path Path to created directory splitted into array.
      *
      * @return Directory
+     * @psalm-suppress UnusedVariable
      */
     public function createDirectoryByPath(array $path): Directory
     {
         list($idx, $parent) = $this->findClosestExistsParent($path);
-        $count = count($path);
+        $count = \count($path);
         $directory = $parent;
 
         for ($i = $idx; $i < $count; ++$i) {
+            if (($parent !== null) && (! $parent instanceof Directory)) {
+                throw new \DomainException('Document and directories maybe added only in directory');
+            }
+
             $directory = $this->createDirectory($path[$i], $parent);
             $parent = $directory;
         }
 
+        /** @var Directory $directory */
         return $directory;
     }
 
@@ -234,13 +240,13 @@ class EntityFactory
     }
 
     /**
-     * @param array $path Path to created directory splitted into array.
+     * @param string[] $path Path to created directory splitted into array.
      *
-     * @return array
+     * @return array{0: int, 1: AbstractFile|null}
      */
     private function findClosestExistsParent(array $path): array
     {
-        /** @var Directory|null $parent */
+        /** @var AbstractFile|null $parent */
         $parent = null;
         $idx = 0;
         $checkPath = '';

@@ -36,6 +36,7 @@
                 <directory name="src/Entity" />
                 <directory name="src/Controller" />
                 <directory name="src/Repository"/>
+                <file name="src/Kernel/Twig/TwigExtension.php" />
             </errorLevel>
         </PossiblyUnusedMethod>
 

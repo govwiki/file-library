@@ -20,6 +20,7 @@ class DirectoryRepository extends EntityRepository implements DirectoryRepositor
      * @param integer $parent Parent directory id.
      *
      * @return Directory|null
+     * @psalm-suppress MoreSpecificReturnType
      */
     public function getByNameAndParent(string $name, int $parent = null)
     {
@@ -28,6 +29,7 @@ class DirectoryRepository extends EntityRepository implements DirectoryRepositor
             $criteria['parent'] = $parent;
         }
 
+        /** @psalm-suppress LessSpecificReturnStatement */
         return $this->findOneBy($criteria);
     }
 }

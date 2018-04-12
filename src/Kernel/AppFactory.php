@@ -2,6 +2,7 @@
 
 namespace App\Kernel;
 
+use App\Middleware\ApiExceptionMiddleware;
 use App\Middleware\AuthenticationMiddleware;
 use App\Service\Authenticator\AuthenticatorInterface;
 use Dotenv\Dotenv;
@@ -73,6 +74,7 @@ class AppFactory
 
         return $app
             ->add(new AuthenticationMiddleware($authenticator, $view))
-            ->add(new Session($settings['session']));
+            ->add(new Session($settings['session']))
+            ->add(new ApiExceptionMiddleware());
     }
 }

@@ -42,6 +42,7 @@ class ORMIndexFileList implements FileListInterface
      */
     public function setLimit(int $limit = null)
     {
+        /** @psalm-suppress PossiblyNullArgument */
         $this->qb->setMaxResults($limit);
         $this->paginator = null;
 
@@ -55,7 +56,7 @@ class ORMIndexFileList implements FileListInterface
      */
     public function setOffset(int $offset = null)
     {
-        $this->qb->setFirstResult($offset);
+        $this->qb->setFirstResult($offset ?? 0);
         $this->paginator = null;
 
         return $this;
@@ -68,6 +69,7 @@ class ORMIndexFileList implements FileListInterface
      */
     public function showHidden(bool $showHidden)
     {
+        /** @var string $alias */
         $alias = $this->qb->getRootAliases()[0];
 
         if (! $showHidden) {
@@ -86,6 +88,7 @@ class ORMIndexFileList implements FileListInterface
      */
     public function orderBy(array $fields)
     {
+        /** @var string $alias */
         $alias = $this->qb->getRootAliases()[0];
 
         // todo, priority: low. Clear order by statement before add new one

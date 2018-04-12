@@ -29,6 +29,8 @@ use SlimSession\Helper;
  * Class ContainerServicesFactory
  *
  * @package App\Kernel\Container
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class ContainerServicesFactory
 {
@@ -99,7 +101,7 @@ class ContainerServicesFactory
                 'connection',
             ]);
 
-            /** @var array{entity_path: string[], auto_generate_proxies: bool, proxy_dir: string, cache: Cache|null} $meta */
+            /** @var array{entity_path: string[], auto_generate_proxies: bool, proxy_dir: string, cache: \Doctrine\Common\Cache\Cache|null} $meta */
             $meta = $settings['meta'];
 
             $config = Setup::createAnnotationMetadataConfiguration(
@@ -167,7 +169,7 @@ class ContainerServicesFactory
          *
          * @return FileStorageIndexInterface
          */
-        $container[FileStorageIndexInterface::class] = function(ContainerInterface $container): FileStorageIndexInterface {
+        $container[FileStorageIndexInterface::class] = function (ContainerInterface $container): FileStorageIndexInterface {
             /** @var EntityManagerInterface $em */
             $em = $container->get('em');
             /** @var EntityFactory $factory */

@@ -12,9 +12,9 @@ abstract class AbstractController
 
 
     /**
-     * @param array  $args    A array of arguments.
-     * @param string $name    A required argument name.
-     * @param mixed  $default Default value.
+     * @param array       $args    A array of arguments.
+     * @param string      $name    A required argument name.
+     * @param string|null $default Default value.
      *
      * @return string|null
      *

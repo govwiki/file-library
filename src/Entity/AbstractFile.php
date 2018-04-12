@@ -53,11 +53,11 @@ abstract class AbstractFile implements \JsonSerializable
     protected $slug;
 
     /**
-     * @var integer
+     * @var integer|null
      *
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $fileSize;
+    protected $fileSize;
 
     /**
      * @var \DateTime
@@ -186,7 +186,7 @@ abstract class AbstractFile implements \JsonSerializable
      */
     public function getFileSize(): int
     {
-        return $this->fileSize;
+        return $this->fileSize ?? 0;
     }
 
     /**
@@ -281,6 +281,19 @@ abstract class AbstractFile implements \JsonSerializable
     }
 
     /**
+     * @return Directory|null Return null if try to get top level dir on one of
+     *                        top level directory.
+     */
+    public function getTopLevelDir()
+    {
+        if ($this->parent === null) {
+            return null;
+        }
+
+        return $this->doGetTopLevelDir($this->parent);
+    }
+
+    /**
      * @return boolean
      */
     abstract public function isDirectory(): bool;
@@ -289,4 +302,19 @@ abstract class AbstractFile implements \JsonSerializable
      * @return boolean
      */
     abstract public function isDocument(): bool;
+
+    /**
+     * @param Directory $curr Currently processed directory.
+     *
+     * @return Directory
+     */
+    private function doGetTopLevelDir(Directory $curr): Directory
+    {
+        $parent = $curr->getParent();
+        if ($parent === null) {
+            return $curr;
+        }
+
+        return $this->doGetTopLevelDir($parent);
+    }
 }

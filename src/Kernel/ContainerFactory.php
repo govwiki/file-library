@@ -24,7 +24,7 @@ class ContainerFactory
     public static function create(string $rootPath, bool $debug = false): ContainerInterface
     {
         $path = realpath($rootPath);
-        if (! is_string($path)) {
+        if (! \is_string($path)) {
             throw new \InvalidArgumentException(sprintf(
                 'Invalid application root path \'%s\'',
                 $rootPath

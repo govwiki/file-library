@@ -72,6 +72,10 @@ class FilesystemFileStorage implements FileStorageInterface
      */
     public function move(string $srcPublicPath, string $destPublicPath)
     {
+        if ($srcPublicPath === $destPublicPath) {
+            return;
+        }
+
         $absSrcPath = $this->buildAbsPath($srcPublicPath);
         $absDestPath = $this->root . ltrim($destPublicPath, '/');
 
