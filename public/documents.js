@@ -105,7 +105,8 @@
     var $table = $('#documents-table');
     dtTable = $table.DataTable({
       autoWidth: false,
-      searching: false,
+      searching: true,
+      searchDelay: 250,
       info: false,
       processing: true,
       serverSide: true,
@@ -123,7 +124,8 @@
             draw: data.draw,
             order: order,
             offset: data.start,
-            limit: data.length
+            limit: data.length,
+            search: data.search.value
           };
         }
       },
@@ -132,6 +134,14 @@
         row.dataset.slug = data.slug;
       }
     });
+
+    var $search = $('input[type="search"]');
+
+    $search
+      .off()
+      .on('keyup cut paste', debounce(function () {
+        dtTable.search($search.val()).draw();
+      }, dtTable.settings()[0].searchDelay));
 
     renameModal = new Modal('#document-rename-modal');
     moveModal = new Modal('#document-move-modal');
@@ -261,5 +271,17 @@
   };
   Modal.prototype.$ = function find(selector) {
     return this._$el.find(selector)
+  };
+
+  function debounce(fn, delay) {
+    var timer = null;
+
+    return function debouncer() {
+      var context = this;
+      var args = arguments;
+
+      clearTimeout(timer);
+      timer = setTimeout(function () { fn.apply(context, args) }, delay);
+    };
   }
 })(jQuery);

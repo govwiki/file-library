@@ -38,4 +38,11 @@ interface FileListInterface extends \Countable, \IteratorAggregate
      * @return $this
      */
     public function showHidden(bool $showHidden);
+
+    /**
+     * @param string $value Set filtering by file name.
+     *
+     * @return $this
+     */
+    public function filterBy(string $value);
 }

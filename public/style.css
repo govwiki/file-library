@@ -92,6 +92,10 @@ table.dataTable tbody tr:hover td a {
 	color: #000;
 }
 
+.dataTables_filter {
+	margin-right: 10px;
+}
+
 .dataTables_length {
  	margin: 5px;
 }
@@ -300,6 +304,13 @@ a:hover {
 
 	.document-action {
 		display: block;
+	}
+}
+
+@media (max-width: 640px) {
+	.dataTables_filter {
+		margin-right: 0;
+		margin-bottom: 10px;
 	}
 }
 

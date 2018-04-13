@@ -11,9 +11,19 @@ class FilesystemFileList implements FileListInterface
 {
 
     /**
-     * @var \Iterator
+     * @var \Iterator|null
      */
     private $iterator;
+
+    /**
+     * @string
+     */
+    private $path;
+
+    /**
+     * @var string|null
+     */
+    private $filterBy;
 
     /**
      * FilesystemFileList constructor.
@@ -22,10 +32,7 @@ class FilesystemFileList implements FileListInterface
      */
     public function __construct(string $path)
     {
-        $this->iterator = new \DirectoryIterator($path);
-        $this->iterator = new \CallbackFilterIterator($this->iterator, function (\DirectoryIterator $file): bool {
-            return ! $file->isDot();
-        });
+        $this->path = $path;
     }
 
     /**
@@ -82,13 +89,30 @@ class FilesystemFileList implements FileListInterface
     }
 
     /**
+     * @param string $value Set filtering by file name.
+     *
+     * @return $this
+     */
+    public function filterBy(string $value)
+    {
+        $value = strtolower(trim($value));
+
+        if ($this->filterBy !== $value) {
+            $this->filterBy = $value === '' ? null : $value;
+            $this->iterator = null;
+        }
+
+        return $this;
+    }
+
+    /**
      * Count elements of an object.
      *
      * @return integer
      */
     public function count(): int
     {
-        return count(iterator_to_array($this->iterator));
+        return \count(iterator_to_array($this->iterator));
     }
 
     /**
@@ -98,6 +122,18 @@ class FilesystemFileList implements FileListInterface
      */
     public function getIterator(): \Traversable
     {
+        if ($this->iterator === null) {
+            $this->iterator = new \DirectoryIterator($this->path);
+            $this->iterator = new \CallbackFilterIterator($this->iterator, function (\DirectoryIterator $file): bool {
+                $valid = ! $file->isDot();
+
+                if ($valid && ($this->filterBy !== null)) {
+                    $valid = stripos($file->getFilename(), $this->filterBy) !== false;
+                }
+
+                return $valid;
+            });
+        }
         return $this->iterator;
     }
 }

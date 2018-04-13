@@ -116,6 +116,24 @@ class ORMIndexFileList implements FileListInterface
     }
 
     /**
+     * @param string $value Set filtering by file name.
+     *
+     * @return $this
+     */
+    public function filterBy(string $value)
+    {
+        /** @var string $alias */
+        $alias = $this->qb->getRootAliases()[0];
+
+        $this->qb
+            ->andWhere($alias .'.name LIKE :name')
+            ->setParameter('name', '%'. preg_replace('/\s+/', '%', $value) .'%');
+        $this->paginator = null;
+
+        return $this;
+    }
+
+    /**
      * Count elements of an object.
      *
      * @return integer
