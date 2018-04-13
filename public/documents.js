@@ -20,7 +20,7 @@
       moveModal.setTitle('Move "'+ data.name +'"').show();
     },
     '.document--action__rename': function (data) {
-      renameModal.$('#document-name').val(data.name);
+      renameModal.$('#document-name').val(data.name + '.' + data.ext);
       renameModal.$('#rename-form').attr('action', '/files/' + data.slug + '/rename');
       renameModal.setTitle('Rename "' + data.name + '"').show();
     },
@@ -142,6 +142,14 @@
     $renameForm.submit(function (event) {
       event.stopPropagation();
       event.preventDefault();
+
+      var newName = $renameInput.val();
+      $renameForm.find('.error').hide().text('');
+      if (! newName.match(/^[A-Z]{2}\s+.+\s+\d{4}\.\w+$/i)) {
+        $renameForm.find('.error').show().text('Invalid document name should be matched to next format: two latter state code, name of document, 4 digit year and then file extension');
+
+        return;
+      }
 
       api({
         url: event.target.getAttribute('action'),

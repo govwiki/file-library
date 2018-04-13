@@ -14,7 +14,7 @@ use App\Service\FileStorage\FileStorageInterface;
 class DocumentMoverService
 {
 
-    const FILENAME_PATTERN = '/(?P<year>\d{4})$/';
+    const FILENAME_PATTERN = '/(?P<year>\d{4})\.\w+$/';
 
     /**
      * @var FileStorageInterface
