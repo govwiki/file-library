@@ -2,8 +2,12 @@
 
 namespace App\Service\FileStorage\FileList;
 
+use App\Entity\AbstractFile;
+use App\Entity\Directory;
+use App\Entity\Document;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 
 /**
  * Class ORMIndexFileList
@@ -16,23 +20,71 @@ class ORMIndexFileList implements FileListInterface
     const SORTED_FIELDS = [ 'name', 'fileSize' ];
 
     /**
-     * @var QueryBuilder
+     * @var EntityManagerInterface
+     */
+    private $em;
+
+    /**
+     * @var string|null
+     */
+    private $publicPath;
+
+    /**
+     * @var integer|null
+     */
+    private $limit = 10;
+
+    /**
+     * @var integer
+     */
+    private $offset = 0;
+
+    /**
+     * @var boolean
+     */
+    private $showHidden = false;
+
+    /**
+     * @var array<string, string>
+     */
+    private $order = [];
+
+    /**
+     * @var string
+     */
+    private $filter = '';
+
+    /**
+     * @var boolean
+     */
+    private $onlyDocuments = false;
+
+    /**
+     * @var boolean
+     */
+    private $recursive = false;
+
+    /**
+     * @var QueryBuilder|null
      */
     private $qb;
 
     /**
-     * @var Paginator|null
+     * @var integer|null
      */
-    private $paginator;
+    private $count;
 
     /**
      * ORMIndexFileList constructor.
      *
-     * @param QueryBuilder $qb A QueryBuilder instance.
+     * @param EntityManagerInterface $em         A EntityManagerInterface instance.
+     * @param string|null            $publicPath A path from which we should get
+     *                                           list of files.
      */
-    public function __construct(QueryBuilder $qb)
+    public function __construct(EntityManagerInterface $em, string $publicPath = null)
     {
-        $this->qb = $qb;
+        $this->em = $em;
+        $this->publicPath = $publicPath;
     }
 
     /**
@@ -42,9 +94,10 @@ class ORMIndexFileList implements FileListInterface
      */
     public function setLimit(int $limit = null)
     {
-        /** @psalm-suppress PossiblyNullArgument */
-        $this->qb->setMaxResults($limit);
-        $this->paginator = null;
+        if ($this->limit !== $limit) {
+            $this->markAsDirty();
+        }
+        $this->limit = $limit;
 
         return $this;
     }
@@ -56,8 +109,11 @@ class ORMIndexFileList implements FileListInterface
      */
     public function setOffset(int $offset = null)
     {
-        $this->qb->setFirstResult($offset ?? 0);
-        $this->paginator = null;
+        $offset = $offset ?? 0;
+        if ($this->offset !== $offset) {
+            $this->markAsDirty();
+        }
+        $this->offset = $offset;
 
         return $this;
     }
@@ -69,13 +125,10 @@ class ORMIndexFileList implements FileListInterface
      */
     public function showHidden(bool $showHidden)
     {
-        /** @var string $alias */
-        $alias = $this->qb->getRootAliases()[0];
-
-        if (! $showHidden) {
-            $this->qb->andWhere($alias .'.hidden <> 1');
-            $this->paginator = null;
+        if ($this->showHidden !== $showHidden) {
+            $this->markAsDirty();
         }
+        $this->showHidden = $showHidden;
 
         return $this;
     }
@@ -88,29 +141,25 @@ class ORMIndexFileList implements FileListInterface
      */
     public function orderBy(array $fields)
     {
-        /** @var string $alias */
-        $alias = $this->qb->getRootAliases()[0];
-
-        // todo, priority: low. Clear order by statement before add new one
-        foreach ($fields as $field => $order) {
+        foreach ($fields as $field => $direction) {
+            $direction = \strtoupper($direction);
             if (! \in_array($field, self::SORTED_FIELDS, true)) {
-                throw new \InvalidArgumentException(sprintf(
-                    'Unknown field "%s" is using for sorting. Expects one of: %s',
+                throw new \DomainException(\sprintf(
+                    'Unknown field "%s", expects one of %s',
                     $field,
-                    self::SORTED_FIELDS
+                    \implode(', ', self::SORTED_FIELDS)
                 ));
             }
 
-            $order = strtolower($order);
-            if (($order !== 'asc') && ($order !== 'desc')) {
-                throw new \InvalidArgumentException(sprintf(
-                    'Unknown order direction "%s". Expects "asc" or "desc"',
-                    $order
+            if (($direction !== 'ASC') && ($direction !== 'DESC')) {
+                throw new \DomainException(\sprintf(
+                    'Unknown ordering direction "%s", expects one of asc, desc',
+                    $direction
                 ));
             }
-
-            $this->qb->addOrderBy(sprintf('%s.%s', $alias, $field), $order);
         }
+        $this->order = $fields;
+        $this->markAsDirty(); // todo low priority, make deep comparison between current and drop query builder new and only if they different
 
         return $this;
     }
@@ -122,13 +171,40 @@ class ORMIndexFileList implements FileListInterface
      */
     public function filterBy(string $value)
     {
-        /** @var string $alias */
-        $alias = $this->qb->getRootAliases()[0];
+        if ($this->filter !== $value) {
+            $this->markAsDirty();
+        }
+        $this->filter = $value;
 
-        $this->qb
-            ->andWhere($alias .'.name LIKE :name')
-            ->setParameter('name', '%'. preg_replace('/\s+/', '%', $value) .'%');
-        $this->paginator = null;
+        return $this;
+    }
+
+    /**
+     * @param boolean $onlyDocuments Fetch only documents without directory.
+     *
+     * @return $this
+     */
+    public function onlyDocuments(bool $onlyDocuments = true)
+    {
+        if ($this->onlyDocuments !== $onlyDocuments) {
+            $this->markAsDirty();
+        }
+        $this->onlyDocuments = $onlyDocuments;
+
+        return $this;
+    }
+
+    /**
+     * @param boolean $recursive Recursively fetch all files.
+     *
+     * @return $this
+     */
+    public function recursive(bool $recursive = true)
+    {
+        if ($this->recursive !== $recursive) {
+            $this->markAsDirty();
+        }
+        $this->recursive = $recursive;
 
         return $this;
     }
@@ -140,7 +216,19 @@ class ORMIndexFileList implements FileListInterface
      */
     public function count(): int
     {
-        return $this->buildPaginator()->count();
+        if ($this->count === null) {
+            $countQb = clone $this->buildQueryBuilder();
+
+            /** @psalm-suppress NullArgument */
+            $this->count = (int) $countQb
+                ->select('DISTINCT COUNT(File.id)')
+                ->setFirstResult(null)
+                ->setMaxResults(null)
+                ->getQuery()
+                ->getSingleResult();
+        }
+
+        return $this->count;
     }
 
     /**
@@ -150,18 +238,124 @@ class ORMIndexFileList implements FileListInterface
      */
     public function getIterator(): \Traversable
     {
-        return $this->buildPaginator();
+        $qb = $this->buildQueryBuilder();
+
+        foreach ($this->order as $field => $direction) {
+            $qb->addOrderBy('File.'. $field, $direction);
+        }
+
+        return new \ArrayIterator($qb->getQuery()->getResult());
     }
 
     /**
-     * @return Paginator
+     * @return QueryBuilder
      */
-    private function buildPaginator(): Paginator
+    private function buildQueryBuilder(): QueryBuilder
     {
-        if ($this->paginator === null) {
-            $this->paginator = new Paginator($this->qb, false);
+        if ($this->qb === null) {
+            $qb = $this->recursive
+                ? $this->buildForRecursive()
+                : $this->buildForNonRecursive();
+
+            /** @psalm-suppress PossiblyNullArgument */
+            $qb
+                ->setMaxResults($this->limit)
+                ->setFirstResult($this->offset);
+
+            if ($this->showHidden) {
+                $qb->andWhere('File.hidden <> 0');
+            }
+
+            if ($this->onlyDocuments) {
+                $qb->andWhere('File INSTANCE OF '. Document::class);
+            }
+
+            if ($this->filter !== '') {
+                $qb
+                    ->andWhere('File.name LIKE :name')
+                    ->setParameter('name', '%'. preg_replace('/\s+/', '%', $this->filter) .'%');
+            }
+
+            $this->qb = $qb;
         }
 
-        return $this->paginator;
+        return $this->qb;
+    }
+
+    /**
+     * @return void
+     */
+    private function markAsDirty()
+    {
+        $this->count = null;
+        $this->qb = null;
+    }
+
+    /**
+     * @return QueryBuilder
+     */
+    private function buildForRecursive(): QueryBuilder
+    {
+        if ($this->publicPath === null) {
+            return $this->em->createQueryBuilder()
+                ->select('File')
+                ->from(AbstractFile::class, 'File');
+        }
+
+        /** @var ClassMetadataInfo $metadata */
+        $metadata = $this->em->getClassMetadata(Directory::class);
+        $tableName = $metadata->getTableName();
+
+        $nestedDirsIds = $this->em->getConnection()->executeQuery("
+            SELECT id
+            FROM
+              (
+                SELECT id, parent_id, `type`
+                FROM {$tableName}
+              ) x,
+              (
+                SELECT @pv := (
+                  SELECT id
+                  FROM {$tableName}
+                  WHERE public_path = '{$this->publicPath}'
+                )
+              ) initialization
+            WHERE
+              FIND_IN_SET(parent_id, @pv) > 0
+              AND `type` = 'directory'
+              AND @pv := CONCAT(@pv, ',', id)
+        ")->fetchAll();
+
+        if (count($nestedDirsIds) === 0) {
+            return $this->buildForNonRecursive();
+        }
+
+        return $this->em->createQueryBuilder()
+            ->select('File')
+            ->from(AbstractFile::class, 'File')
+            ->where('File.parent in (:ids)')
+            ->setParameter('ids', $nestedDirsIds);
+    }
+
+    /**
+     * @return QueryBuilder
+     */
+    private function buildForNonRecursive(): QueryBuilder
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('File')
+            ->from(AbstractFile::class, 'File');
+
+        if ($this->publicPath === null) {
+            $qb
+                ->where('File.parent IS NULL');
+        } else {
+            $qb
+                ->join('File.parent', 'Parent')
+                ->where('Parent.publicPath = :path')
+                ->setParameter('path', $this->publicPath);
+        }
+
+        return $qb;
     }
 }

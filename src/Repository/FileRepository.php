@@ -75,26 +75,4 @@ class FileRepository extends EntityRepository implements FileRepositoryInterface
         /** @psalm-suppress LessSpecificReturnStatement */
         return $this->findOneBy([ 'publicPath' => $publicPath ]);
     }
-
-    /**
-     * @param string|null $publicPath Listed directory public path.
-     *
-     * @return QueryBuilder
-     */
-    public function listFilesIn(string $publicPath = null): QueryBuilder
-    {
-        $qb = $this->createQueryBuilder('File');
-
-        if ($publicPath === null) {
-            $qb
-                ->where('File.parent IS NULL');
-        } else {
-            $qb
-                ->join('File.parent', 'Parent')
-                ->where('Parent.publicPath = :path')
-                ->setParameter('path', $publicPath);
-        }
-
-        return $qb;
-    }
 }

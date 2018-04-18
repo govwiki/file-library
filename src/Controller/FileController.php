@@ -147,8 +147,12 @@ class FileController extends AbstractController
             $publicPath = $directory->getPublicPath();
         }
 
+        $search = $request->getQueryParam('search', '');
+
         $list = $this->fileStorage->listFiles($publicPath)
-            ->filterBy($request->getQueryParam('search', ''))
+            ->onlyDocuments($search !== '')
+            ->recursive($search !== '')
+            ->filterBy($search)
             ->showHidden($request->getAttribute('user') instanceof User)
             ->setLimit($request->getQueryParam('limit'))
             ->setOffset($request->getQueryParam('offset'))

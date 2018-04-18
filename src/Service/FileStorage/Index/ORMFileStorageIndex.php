@@ -49,10 +49,7 @@ class ORMFileStorageIndex implements FileStorageIndexInterface
      */
     public function createList(string $publicPath = null): FileListInterface
     {
-        /** @var FileRepositoryInterface $repository */
-        $repository = $this->em->getRepository(AbstractFile::class);
-
-        return new ORMIndexFileList($repository->listFilesIn($publicPath));
+        return new ORMIndexFileList($this->em, $publicPath);
     }
 
     /**

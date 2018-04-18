@@ -16,7 +16,7 @@ class FilesystemFileList implements FileListInterface
     private $iterator;
 
     /**
-     * @string
+     * @var string
      */
     private $path;
 
@@ -24,6 +24,16 @@ class FilesystemFileList implements FileListInterface
      * @var string|null
      */
     private $filterBy;
+
+    /**
+     * @var boolean
+     */
+    private $onlyDocuments = false;
+
+    /**
+     * @var boolean
+     */
+    private $recursive = false;
 
     /**
      * FilesystemFileList constructor.
@@ -106,13 +116,43 @@ class FilesystemFileList implements FileListInterface
     }
 
     /**
+     * @param boolean $onlyDocuments Fetch only documents without directory.
+     *
+     * @return $this
+     */
+    public function onlyDocuments(bool $onlyDocuments = true)
+    {
+        if ($this->onlyDocuments !== $onlyDocuments) {
+            $this->iterator = null;
+        }
+        $this->onlyDocuments = $onlyDocuments;
+
+        return $this;
+    }
+
+    /**
+     * @param boolean $recursive Recursively fetch all files.
+     *
+     * @return $this
+     */
+    public function recursive(bool $recursive = true)
+    {
+        if ($this->recursive !== $recursive) {
+            $this->iterator = null;
+        }
+        $this->recursive = $recursive;
+
+        return $this;
+    }
+
+    /**
      * Count elements of an object.
      *
      * @return integer
      */
     public function count(): int
     {
-        return \count(iterator_to_array($this->iterator));
+        return \count(iterator_to_array($this->getIterator()));
     }
 
     /**
@@ -123,9 +163,19 @@ class FilesystemFileList implements FileListInterface
     public function getIterator(): \Traversable
     {
         if ($this->iterator === null) {
-            $this->iterator = new \DirectoryIterator($this->path);
+            if ($this->recursive) {
+                $this->iterator = new \RecursiveDirectoryIterator($this->path);
+                $this->iterator = new \RecursiveIteratorIterator($this->iterator);
+            } else {
+                $this->iterator = new \DirectoryIterator($this->path);
+            }
+
             $this->iterator = new \CallbackFilterIterator($this->iterator, function (\DirectoryIterator $file): bool {
                 $valid = ! $file->isDot();
+
+                if ($this->onlyDocuments) {
+                    $valid = $valid && $file->isFile();
+                }
 
                 if ($valid && ($this->filterBy !== null)) {
                     $valid = stripos($file->getFilename(), $this->filterBy) !== false;

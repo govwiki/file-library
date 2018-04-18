@@ -48,11 +48,4 @@ interface FileRepositoryInterface
      * @return AbstractFile|null
      */
     public function findByPublicPath(string $publicPath);
-
-    /**
-     * @param string|null $publicPath Listed directory public path.
-     *
-     * @return QueryBuilder
-     */
-    public function listFilesIn(string $publicPath = null): QueryBuilder;
 }

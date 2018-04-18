@@ -37,6 +37,7 @@
                 <directory name="src/Controller" />
                 <directory name="src/Repository"/>
                 <file name="src/Kernel/Twig/TwigExtension.php" />
+                <file name="src/Service/FileStorage/FileList/FileListInterface.php"/>
             </errorLevel>
         </PossiblyUnusedMethod>
 

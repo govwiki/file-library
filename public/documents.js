@@ -104,6 +104,31 @@
 
     var $table = $('#documents-table');
     dtTable = $table.DataTable({
+      initComplete: function () {
+        var $search = $('input[type="search"]');
+        var debouncedSearch = debounce(function () {
+          dtTable.search($search.val()).draw();
+        }, dtTable.settings()[0].searchDelay);
+        var $btn = $('<button style="display: none" class="btn btn-small">Reset</button>');
+
+        $btn.click(function () {
+          dtTable.search('').draw();
+          $btn.hide();
+        });
+
+        $search
+          .off()
+          .on('keyup cut paste', function () {
+            if ($search.val() !== '') {
+              $btn.show();
+            } else {
+              $btn.hide();
+            }
+          })
+          .on('keyup cut paste', debouncedSearch);
+
+        $search.parent().append($btn);
+      },
       autoWidth: false,
       searching: true,
       searchDelay: 250,
@@ -134,14 +159,6 @@
         row.dataset.slug = data.slug;
       }
     });
-
-    var $search = $('input[type="search"]');
-
-    $search
-      .off()
-      .on('keyup cut paste', debounce(function () {
-        dtTable.search($search.val()).draw();
-      }, dtTable.settings()[0].searchDelay));
 
     renameModal = new Modal('#document-rename-modal');
     moveModal = new Modal('#document-move-modal');

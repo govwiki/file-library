@@ -45,4 +45,18 @@ interface FileListInterface extends \Countable, \IteratorAggregate
      * @return $this
      */
     public function filterBy(string $value);
+
+    /**
+     * @param boolean $onlyDocuments Fetch only documents without directory.
+     *
+     * @return $this
+     */
+    public function onlyDocuments(bool $onlyDocuments = true);
+
+    /**
+     * @param boolean $recursive Recursively fetch all files.
+     *
+     * @return $this
+     */
+    public function recursive(bool $recursive = true);
 }
