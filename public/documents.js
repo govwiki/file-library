@@ -15,6 +15,9 @@
     'tbody tr': function (data) {
       window.location = '/' + data.slug;
     },
+    '.document--action__download': function(data) {
+      window.location = '/' + data.slug;
+    },
     '.document--action__move': function (data) {
       moveModal.$('#move-form').attr('action', '/files/' + data.slug + '/move');
       moveModal.setTitle('Move "'+ data.name +'"').show();
@@ -67,40 +70,46 @@
       }
     ];
 
+    var ACTIONS = [
+      {
+        'class': 'document-action document--action__download',
+        'icon': 'fa-download',
+        'title': 'Download'
+      }
+    ];
+
     if (documents.showActions) {
-      var ACTIONS = [
-        {
-          'class': 'document-action document--action__move',
-          'icon': 'fa-folder-open',
-          'title': 'Move'
-        },
-        {
-          'class': 'document-action document--action__rename',
-          'icon': 'fa-edit',
-          'title': 'Rename'
-        },
-        {
-          'class': 'document-action document--action__remove',
-          'icon': 'fa-trash',
-          'title': 'Remove'
-        }
-      ];
-
-      columns.push({
-        title: 'Action',
-        data: function (data) {
-          if (data.type === 'directory') {
-            return '';
-          }
-
-          return $.map(ACTIONS, function (action) {
-            return '<a class="'+ action.class +'" href="#"><i class="fa '+ action.icon +'"></i> '+ action.title +'</a>'
-          }).join('');
-        },
-        className: 'document--field__actions',
-        orderable: false
+      ACTIONS.push({
+        'class': 'document-action document--action__move',
+        'icon': 'fa-folder-open',
+        'title': 'Move'
+      });
+      ACTIONS.push({
+        'class': 'document-action document--action__rename',
+        'icon': 'fa-edit',
+        'title': 'Rename'
+      });
+      ACTIONS.push({
+        'class': 'document-action document--action__remove',
+        'icon': 'fa-trash',
+        'title': 'Remove'
       });
     }
+
+    columns.push({
+      title: 'Action',
+      data: function (data) {
+        if (data.type === 'directory') {
+          return '';
+        }
+
+        return $.map(ACTIONS, function (action) {
+          return '<a class="'+ action.class +'" href="#"><i class="fa '+ action.icon +'"></i> '+ action.title +'</a>'
+        }).join('');
+      },
+      className: 'document--field__actions',
+      orderable: false
+    });
 
     var $table = $('#documents-table');
     dtTable = $table.DataTable({

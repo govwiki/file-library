@@ -262,8 +262,8 @@ class ORMIndexFileList implements FileListInterface
                 ->setMaxResults($this->limit)
                 ->setFirstResult($this->offset);
 
-            if ($this->showHidden) {
-                $qb->andWhere('File.hidden <> 0');
+            if (! $this->showHidden) {
+                $qb->andWhere('File.hidden <> 1');
             }
 
             if ($this->onlyDocuments) {
