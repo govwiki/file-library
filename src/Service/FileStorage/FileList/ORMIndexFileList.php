@@ -220,12 +220,12 @@ class ORMIndexFileList implements FileListInterface
             $countQb = clone $this->buildQueryBuilder();
 
             /** @psalm-suppress NullArgument */
-            $this->count = (int) $countQb
-                ->select('DISTINCT COUNT(File.id)')
+            $this->count = (int) current($countQb
+                ->select('COUNT(File.id)')
                 ->setFirstResult(null)
                 ->setMaxResults(null)
                 ->getQuery()
-                ->getSingleResult();
+                ->getSingleResult());
         }
 
         return $this->count;
