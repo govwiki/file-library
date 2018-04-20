@@ -148,15 +148,20 @@ class FileController extends AbstractController
         }
 
         $search = $request->getQueryParam('search', '');
+        $limit = (int) $request->getQueryParam('limit');
 
         $list = $this->fileStorage->listFiles($publicPath)
             ->onlyDocuments($search !== '')
             ->recursive($search !== '')
             ->filterBy($search)
             ->showHidden($request->getAttribute('user') instanceof User)
-            ->setLimit($request->getQueryParam('limit'))
-            ->setOffset($request->getQueryParam('offset'))
             ->orderBy($request->getQueryParam('order'));
+
+        if ($limit > 0) {
+            $list
+                ->setLimit($limit)
+                ->setOffset($request->getQueryParam('offset'));
+        }
 
         return $response->withJson([
             'draw' => $request->getQueryParam('draw'),

@@ -113,6 +113,10 @@
 
     var $table = $('#documents-table');
     dtTable = $table.DataTable({
+      lengthMenu: [
+        [ 2, 10, 25, 50, 100, -1 ],
+        [ 2, 10, 25, 50, 100, 'All']
+      ],
       initComplete: function () {
         var $search = $('input[type="search"]');
         var debouncedSearch = debounce(function () {
@@ -157,7 +161,7 @@
           return {
             draw: data.draw,
             order: order,
-            offset: data.start,
+            offset: data.start || 0,
             limit: data.length,
             search: data.search.value
           };

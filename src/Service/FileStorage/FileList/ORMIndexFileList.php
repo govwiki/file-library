@@ -32,7 +32,7 @@ class ORMIndexFileList implements FileListInterface
     /**
      * @var integer|null
      */
-    private $limit = 10;
+    private $limit;
 
     /**
      * @var integer
