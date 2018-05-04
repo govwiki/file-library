@@ -14,7 +14,7 @@ RUN apk update && apk add --no-cache --virtual .build-deps autoconf file pkgconf
     && wget https://github.com/php-memcached-dev/php-memcached/archive/php7.zip \
     && unzip php7.zip \
     && docker-php-ext-configure /tmp/php-memcached-php7 --disable-memcached-sasl \
-    && docker-php-ext-install /tmp/php-memcached-php7 pdo pdo_mysql \
+    && docker-php-ext-install /tmp/php-memcached-php7 pdo pdo_mysql pcntl sysvmsg \
     && docker-php-ext-enable xdebug memcached \
     && rm -rf /var/cache/apk/* \
     && rm -rf /tmp/* \

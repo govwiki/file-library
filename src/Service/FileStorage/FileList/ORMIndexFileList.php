@@ -13,6 +13,7 @@ use Doctrine\ORM\QueryBuilder;
  * Class ORMIndexFileList
  *
  * @package App\Service\FileStorage\FileList
+ * @deprecated See FileListInterface
  */
 class ORMIndexFileList implements FileListInterface
 {
@@ -235,6 +236,7 @@ class ORMIndexFileList implements FileListInterface
      * Retrieve an external iterator.
      *
      * @return \Traversable
+     * @psalm-return \Traversable<int, FileInterface>
      */
     public function getIterator(): \Traversable
     {

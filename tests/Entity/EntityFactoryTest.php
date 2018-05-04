@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\FileRepositoryInterface;
+use App\Repository\UserRepositoryInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Tests\AppTestCase;
 
@@ -17,7 +18,12 @@ class EntityFactoryTest extends AppTestCase
     /**
      * @var FileRepositoryInterface|MockObject
      */
-    private $repository;
+    private $fileRepository;
+
+    /**
+     * @var UserRepositoryInterface|MockObject
+     */
+    private $userRepository;
 
     /**
      * @var EntityFactory
@@ -64,7 +70,7 @@ class EntityFactoryTest extends AppTestCase
     {
         $path = [ 'some', 'dir' ];
 
-        $this->repository
+        $this->fileRepository
             ->expects($this->once())
             ->method('findByPublicPath')
             ->with($this->equalTo('/some'))
@@ -100,19 +106,19 @@ class EntityFactoryTest extends AppTestCase
 
         $path = [ 'some', 'deep', 'dir', 'dest' ];
 
-        $this->repository
+        $this->fileRepository
             ->expects($this->at(0))
             ->method('findByPublicPath')
             ->with($this->equalTo('/some'))
             ->willReturn($someDir);
 
-        $this->repository
+        $this->fileRepository
             ->expects($this->at(1))
             ->method('findByPublicPath')
             ->with($this->equalTo('/some/deep'))
             ->willReturn($deepDir);
 
-        $this->repository
+        $this->fileRepository
             ->expects($this->at(2))
             ->method('findByPublicPath')
             ->with($this->equalTo('/some/deep/dir'))
@@ -153,7 +159,8 @@ class EntityFactoryTest extends AppTestCase
      */
     protected function setUp()
     {
-        $this->repository = $this->createMockForInterface(FileRepositoryInterface::class);
-        $this->factory = new EntityFactory($this->repository);
+        $this->fileRepository = $this->createMockForInterface(FileRepositoryInterface::class);
+        $this->userRepository = $this->createMockForInterface(UserRepositoryInterface::class);
+        $this->factory = new EntityFactory($this->fileRepository, $this->userRepository);
     }
 }

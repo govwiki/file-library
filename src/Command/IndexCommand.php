@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Service\FileStorage\FileList\FileInterface;
 use App\Service\FileStorage\FileStorageInterface;
 use App\Service\FileStorage\Index\FileStorageIndexInterface;
 use Symfony\Component\Console\Command\Command;
@@ -107,12 +108,12 @@ class IndexCommand extends Command
         $output->writeln(sprintf("\t<comment>Process \"%s\" directory</comment>", $path));
         $iterator = $this->fileStorage->listFiles($path);
 
-        /** @var \DirectoryIterator $file */
+        /** @var FileInterface $file */
         foreach ($iterator as $file) {
-            $name = $file->getFilename();
+            $name = $file->getName();
             $filePath = rtrim($path, '/') .'/'. $name;
 
-            if ($file->isDir()) {
+            if ($file->isDirectory()) {
                 $this->fileStorageIndex->index($filePath)->flush();
                 $this->indexDocument($filePath, $output);
             } else {

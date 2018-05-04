@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Service\FileStorage\FileList\FileInterface;
 use Assert\Assert;
 use Assert\Assertion;
 use Doctrine\ORM\Mapping as ORM;
@@ -19,7 +20,7 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * @package App\Entity
  */
-abstract class AbstractFile implements \JsonSerializable
+abstract class AbstractFile implements FileInterface, \JsonSerializable
 {
 
     /**
@@ -185,6 +186,16 @@ abstract class AbstractFile implements \JsonSerializable
      * @return integer
      */
     public function getFileSize(): int
+    {
+        return $this->fileSize ?? 0;
+    }
+
+    /**
+     * Return file size in bytes.
+     *
+     * @return integer
+     */
+    public function getSize(): int
     {
         return $this->fileSize ?? 0;
     }

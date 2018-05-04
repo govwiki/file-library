@@ -6,6 +6,7 @@ namespace App\Service\FileStorage\FileList;
  * interface FileListInterface
  *
  * @package App\Service\FileStorage\FileList
+ * @deprecated This interface is split into two different. One for physical file storage and one for logical
  */
 interface FileListInterface extends \Countable, \IteratorAggregate
 {
@@ -59,4 +60,12 @@ interface FileListInterface extends \Countable, \IteratorAggregate
      * @return $this
      */
     public function recursive(bool $recursive = true);
+
+    /**
+     * Retrieve an external iterator.
+     *
+     * @return \Traversable
+     * @psalm-return \Traversable<int, FileInterface>
+     */
+    public function getIterator(): \Traversable;
 }

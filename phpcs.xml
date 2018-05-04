@@ -87,11 +87,11 @@
         <severity>0</severity>
     </rule>
 
-    <rule ref="Symfony2.Commenting.FunctionComment.MissingParamComment">
+    <rule ref="Symfony.Commenting.FunctionComment.MissingParamComment">
         <severity>0</severity>
     </rule>
 
-    <rule ref="Symfony2.Commenting.FunctionComment.SpacingBeforeTags">
+    <rule ref="Symfony.Commenting.FunctionComment.SpacingBeforeTags">
         <severity>0</severity>
     </rule>
 
@@ -102,17 +102,17 @@
     </rule>
 
 <!-- modified for Sibers -->
-    <rule ref="Symfony2.Commenting.FunctionComment.SpacingAfterParams">
+    <rule ref="Symfony.Commenting.FunctionComment.SpacingAfterParams">
         <severity>0</severity>
     </rule>
 
 <!-- modified for Sibers -->
-    <rule ref="Symfony2.Commenting.ClassComment.SpacingBeforeTags">
+    <rule ref="Symfony.Commenting.ClassComment.SpacingBeforeTags">
         <severity>0</severity>
     </rule>
 
 <!-- modified for Sibers -->
-    <rule ref="Symfony2.Formatting.BlankLineBeforeReturn">
+    <rule ref="Symfony.Formatting.BlankLineBeforeReturn">
         <severity>0</severity>
         <message>Blank line before return is not required.</message>
     </rule>
@@ -130,12 +130,12 @@
     </rule>
 
 <!-- modified for Sibers -->
-    <rule ref="Symfony2.Functions.ScopeOrder.Invalid">
+    <rule ref="Symfony.Functions.ScopeOrder.Invalid">
         <severity>0</severity>
         <message>Scope order is not required.</message>
     </rule>
 
-    <rule ref="Symfony2.Commenting.ClassComment.SpacingBeforeTags">
+    <rule ref="Symfony.Commenting.ClassComment.SpacingBeforeTags">
         <message>There should always be a description, followed by a blank line, before the tags of a class comment.</message>
     </rule>
 

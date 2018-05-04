@@ -61,6 +61,11 @@ class ContainerFactory
                         'password' => getenv('DB_PASSWORD'),
                     ],
                 ],
+                'azure' => [
+                    'share' => \getenv('AZURE_FILE_STORAGE_SHARE'),
+                    'account_name' => \getenv('AZURE_FILE_STORAGE_ACCOUNT_NAME'),
+                    'account_key' => \getenv('AZURE_FILE_STORAGE_ACCOUNT_KEY'),
+                ],
                 'session' => [
                     'name' => 'session',
                     'lifetime' => '24 hour',

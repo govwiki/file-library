@@ -42,7 +42,7 @@ $console->addCommands([
         $container->get(\App\Entity\EntityFactory::class),
         $container->get(\App\Repository\UserRepositoryInterface::class)
     ),
-
+    new \App\Command\DocumentsSyncCommand($container->get(\App\Service\Storage\Physical\AzurePhysicalStorage::class)),
     new \Doctrine\DBAL\Migrations\Tools\Console\Command\DiffCommand(),
     new \Doctrine\DBAL\Migrations\Tools\Console\Command\ExecuteCommand(),
     new \Doctrine\DBAL\Migrations\Tools\Console\Command\GenerateCommand(),

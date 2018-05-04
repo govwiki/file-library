@@ -6,6 +6,7 @@ namespace App\Service\FileStorage\FileList;
  * Class FilesystemFileList
  *
  * @package App\Service\FileStorage\FileList
+ * @deprecated see FileListInterface
  */
 class FilesystemFileList implements FileListInterface
 {
@@ -159,6 +160,7 @@ class FilesystemFileList implements FileListInterface
      * Retrieve an external iterator.
      *
      * @return \Traversable
+     * @psalm-return \Traversable<int, FileInterface>
      */
     public function getIterator(): \Traversable
     {
@@ -184,6 +186,14 @@ class FilesystemFileList implements FileListInterface
                 return $valid;
             });
         }
-        return $this->iterator;
+
+        /** @var \SplFileInfo $file */
+        foreach ($this->iterator as $file) {
+            if ($file->isDir()) {
+                yield InternalFile::createDirectory($file->getFilename());
+            } else {
+                yield InternalFile::createDocument($file->getFilename(), $file->getSize());
+            }
+        }
     }
 }

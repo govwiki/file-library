@@ -14,6 +14,7 @@ use App\Service\FileStorage\FilesystemFileStorage;
 use App\Service\FileStorage\Index\FileStorageIndexInterface;
 use App\Service\FileStorage\Index\ORMFileStorageIndex;
 use App\Service\FileStorage\IndexedFileStorage;
+use App\Service\Storage\Physical\AzurePhysicalStorage;
 use Doctrine\Common\Inflector\Inflector;
 use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ORM\EntityManager;
@@ -162,6 +163,26 @@ class ContainerServicesFactory
             $userRepository = $container->get(UserRepositoryInterface::class);
 
             return new EntityFactory($fileRepository, $userRepository);
+        };
+
+        /**
+         * @param ContainerInterface $container A ContainerInterface instance.
+         *
+         * @return AzurePhysicalStorage
+         */
+        $container[AzurePhysicalStorage::class] = function (ContainerInterface $container): AzurePhysicalStorage {
+            /** @var array{share: string, account_name: string, account_key: string} $settings */
+            $settings = self::getSettings($container, 'azure', [
+                'share',
+                'account_name',
+                'account_key',
+            ]);
+
+            return new AzurePhysicalStorage(
+                $settings['account_name'],
+                $settings['account_key'],
+                $settings['share']
+            );
         };
 
         /**

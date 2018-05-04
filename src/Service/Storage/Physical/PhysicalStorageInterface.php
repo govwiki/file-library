@@ -1,17 +1,18 @@
 <?php
 
-namespace App\Service\FileStorage;
+namespace App\Service\Storage\Physical;
 
-use App\Service\FileStorage\FileList\FileListInterface;
 use Psr\Http\Message\StreamInterface;
 
 /**
- * Interface FileStorageInterface
+ * Interface PhysicalStorageInterface
  *
- * @package App\Service\FileStorage
- * @deprecated See App\Service\Storage\Physical\PhysicalStorageInterface and App\Service\Storage\Logical\LogicalStorageInterface
+ * Interface represents "real" document storage where document are located.
+ * For example filesystem.
+ *
+ * @package App\Service\Storage\Physical
  */
-interface FileStorageInterface
+interface PhysicalStorageInterface
 {
 
     /**
@@ -27,9 +28,9 @@ interface FileStorageInterface
      *
      * @param string $publicPath Public path to directory.
      *
-     * @return FileListInterface
+     * @return PhysicalFileListInterface
      */
-    public function listFiles(string $publicPath = '/'): FileListInterface;
+    public function listFiles(string $publicPath = '/'): PhysicalFileListInterface;
 
     /**
      * @param string $srcPublicPath  Path to moved file.
@@ -52,4 +53,13 @@ interface FileStorageInterface
      * @return StreamInterface
      */
     public function read(string $publicPath): StreamInterface;
+
+    /**
+     * Checks that file are exists.
+     *
+     * @param string $publicPath Public path to file.
+     *
+     * @return boolean
+     */
+    public function isExists(string $publicPath): bool;
 }

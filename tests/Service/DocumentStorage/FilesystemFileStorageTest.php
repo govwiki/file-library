@@ -2,6 +2,7 @@
 
 namespace App\Service\FileStorage;
 
+use Slim\Http\Stream;
 use Tests\AppTestCase;
 
 /**
@@ -62,13 +63,16 @@ class FilesystemFileStorageTest extends AppTestCase
      */
     public function testStore()
     {
-        $src = self::FIXTURE_ROOT.'/test';
-        $dest = '/dir2/dir22/dir221/file2211';
-        touch($src);
+        $content = 'some string';
 
-        $this->storage->store($src, $dest);
+        $dest = '/dir2/dir22/dir221/file2211';
+        $stream = \fopen('php://memory', 'r+b');
+        \fwrite($stream, $content);
+        \rewind($stream);
+
+        $this->storage->store(new Stream($stream), $dest);
         $this->assertFileExists(self::FIXTURE_ROOT . $dest);
-        $this->assertFileNotExists($src);
+        $this->assertEquals($content, \file_get_contents(self::FIXTURE_ROOT . $dest));
     }
 
     /**
@@ -76,13 +80,16 @@ class FilesystemFileStorageTest extends AppTestCase
      */
     public function testStoreAlreadyExistsFile()
     {
-        $src = self::FIXTURE_ROOT.'/test';
-        $dest = '/dir1/dir11/dir111/file1111';
-        touch($src);
+        $content = 'some string';
 
-        $this->storage->store($src, $dest);
-        $this->assertFileExists(self::FIXTURE_ROOT.$dest);
-        $this->assertFileNotExists($src);
+        $dest = '/dir1/dir11/dir111/file1111';
+        $stream = \fopen('php://memory', 'r+b');
+        \fwrite($stream, $content);
+        \rewind($stream);
+
+        $this->storage->store(new Stream($stream), $dest);
+        $this->assertFileExists(self::FIXTURE_ROOT . $dest);
+        $this->assertEquals($content, \file_get_contents(self::FIXTURE_ROOT . $dest));
     }
 
     /**
@@ -96,14 +103,11 @@ class FilesystemFileStorageTest extends AppTestCase
     }
 
     /**
-     * @expectedException \App\Service\FileStorage\FileStorageException
-     * @expectedExceptionMessage Can't build absolute path for "/dir1/dir11/dir111/file1155"
-     *
      * @return void
      */
     public function testRemoveNotExistsFile()
     {
-        $path = '/dir1/dir11/dir111/file1155';
+        $path = '/dir1/dir11/dir111/not exists';
         $this->storage->remove($path);
         $this->assertFileNotExists($path);
     }
@@ -115,7 +119,9 @@ class FilesystemFileStorageTest extends AppTestCase
      */
     public static function setUpBeforeClass()
     {
-        @mkdir(self::FIXTURE_ROOT, 0777, true);
+        if (! \file_exists(self::FIXTURE_ROOT)) {
+            \mkdir(self::FIXTURE_ROOT, 0777, true);
+        }
         self::createFixtures(self::FIXTURE_ROOT, self::FIXTURES);
     }
 
@@ -132,9 +138,9 @@ class FilesystemFileStorageTest extends AppTestCase
         /** @var \SplFileInfo $file */
         foreach ($iterator as $file) {
             if ($file->isDir()) {
-                rmdir($file->getRealPath());
+                \rmdir($file->getRealPath());
             } else {
-                unlink($file->getRealPath());
+                \unlink($file->getRealPath());
             }
         }
     }
@@ -159,11 +165,11 @@ class FilesystemFileStorageTest extends AppTestCase
     private static function createFixtures(string $path, array $files)
     {
         foreach ($files as $name => $subFiles) {
-            if (is_array($subFiles)) {
-                mkdir($path .'/'. $name);
+            if (\is_array($subFiles)) {
+                \mkdir($path .'/'. $name);
                 self::createFixtures($path .'/'. $name, $subFiles);
             } else {
-                touch($path .'/'. $name);
+                \touch($path .'/'. $name);
             }
         }
     }

@@ -2,6 +2,7 @@
 
 namespace App\Service\FileStorage;
 
+use App\Service\FileStorage\FileList\FileInterface;
 use App\Service\FileStorage\FileList\FileListInterface;
 use App\Service\FileStorage\FileList\FilesystemFileList;
 use Psr\Http\Message\StreamInterface;
@@ -27,15 +28,15 @@ class FilesystemFileStorage implements FileStorageInterface
      */
     public function __construct(string $root)
     {
-        $path = realpath($root);
-        if (! is_string($path) || ! is_writable($path)) {
+        $path = \realpath($root);
+        if (! \is_string($path) || ! \is_writable($path)) {
             throw new \InvalidArgumentException(sprintf(
                 'Path "%s" is not exists or not available for writing',
                 $root
             ));
         }
 
-        $this->root = rtrim($path, '/') . '/';
+        $this->root = \rtrim($path, '/') . '/';
     }
 
     /**
@@ -46,10 +47,10 @@ class FilesystemFileStorage implements FileStorageInterface
      */
     public function store(StreamInterface $stream, string $destPublicPath)
     {
-        $absDestPath = $this->root . ltrim($destPublicPath, '/');
+        $absDestPath = $this->root . \ltrim($destPublicPath, '/');
 
-        $this->creteDirectoriersTo($absDestPath);
-        file_put_contents($absDestPath, $stream->getContents());
+        $this->creteDirectoriesTo($absDestPath);
+        \file_put_contents($absDestPath, $stream->getContents());
     }
 
     /**
@@ -77,15 +78,15 @@ class FilesystemFileStorage implements FileStorageInterface
         }
 
         $absSrcPath = $this->buildAbsPath($srcPublicPath);
-        $absDestPath = $this->root . ltrim($destPublicPath, '/');
+        $absDestPath = $this->root . \ltrim($destPublicPath, '/');
 
-        $this->creteDirectoriersTo($absDestPath);
+        $this->creteDirectoriesTo($absDestPath);
 
         //
         // Move file to specified directory.
         //
-        if (! @rename($absSrcPath, $absDestPath)) {
-            throw new FileStorageException(sprintf(
+        if (! @\rename($absSrcPath, $absDestPath)) {
+            throw new FileStorageException(\sprintf(
                 'Can\'t store file "%s" to "%s"',
                 $srcPublicPath,
                 $destPublicPath
@@ -109,20 +110,20 @@ class FilesystemFileStorage implements FileStorageInterface
         if (\is_dir($absPath)) {
             $files = $this->listFiles($publicPath);
 
-            /** @var \DirectoryIterator $file */
+            /** @var FileInterface $file */
             foreach ($files as $file) {
-                $this->remove($publicPath .'/'. $file->getFilename());
+                $this->remove($publicPath .'/'. $file->getName());
             }
 
-            if (! @rmdir($absPath)) {
-                throw new FileStorageException(sprintf(
+            if (! @\rmdir($absPath)) {
+                throw new FileStorageException(\sprintf(
                     'Can\'t remove directory "%s"',
                     $publicPath
                 ));
             }
         } else {
-            if (! @unlink($absPath)) {
-                throw new FileStorageException(sprintf(
+            if (! @\unlink($absPath)) {
+                throw new FileStorageException(\sprintf(
                     'Can\'t remove file "%s"',
                     $publicPath
                 ));
@@ -139,16 +140,16 @@ class FilesystemFileStorage implements FileStorageInterface
     {
         $absPath = $this->buildAbsPath($publicPath);
 
-        if (! is_file($this->root . $publicPath) || ! is_readable($absPath)) {
-            throw new \LogicException(sprintf(
+        if (! \is_file($this->root . $publicPath) || ! \is_readable($absPath)) {
+            throw new \LogicException(\sprintf(
                 'Can\'t read content of file "%s" \'cause it not ordinal file or not readable',
                 $publicPath
             ));
         }
 
-        $file = fopen($absPath, 'rb');
-        if (! is_resource($file)) {
-            throw new \RuntimeException(sprintf(
+        $file = \fopen($absPath, 'rb');
+        if (! \is_resource($file)) {
+            throw new \RuntimeException(\sprintf(
                 'Can\'t read content of file "%s" \'cause it not ordinal file or not readable',
                 $absPath
             ));
@@ -162,18 +163,18 @@ class FilesystemFileStorage implements FileStorageInterface
      *
      * @return void
      */
-    private function creteDirectoriersTo(string $filePath)
+    private function creteDirectoriesTo(string $filePath)
     {
         //
         // Create destination directory.
         //
-        $filePathParts = explode('/', $filePath);
-        unset($filePathParts[count($filePathParts) - 1]);
-        $destDir = implode('/', $filePathParts);
+        $filePathParts = \explode('/', $filePath);
+        unset($filePathParts[\count($filePathParts) - 1]);
+        $destDir = \implode('/', $filePathParts);
 
-        if (! is_dir($destDir)) {
-            if (! @mkdir($destDir, 0777, true) || ! is_dir($destDir)) {
-                throw new FileStorageException(sprintf(
+        if (! \is_dir($destDir)) {
+            if (! @\mkdir($destDir, 0777, true) || ! \is_dir($destDir)) {
+                throw new FileStorageException(\sprintf(
                     'Can\'t create directories to "%s"',
                     $filePath
                 ));
@@ -188,16 +189,16 @@ class FilesystemFileStorage implements FileStorageInterface
      */
     private function buildAbsPath(string $publicPath): string
     {
-        $absPath = realpath($this->root . $publicPath);
-        if (! is_string($absPath)) {
-            throw new FileStorageException(sprintf(
+        $absPath = \realpath($this->root . $publicPath);
+        if (! \is_string($absPath)) {
+            throw new FileStorageException(\sprintf(
                 'Can\'t build absolute path for "%s"',
                 $publicPath
             ));
         }
 
-        if (strpos($absPath, rtrim($this->root, '/')) === false) {
-            throw new FileStorageException(sprintf(
+        if (\strpos($absPath, \rtrim($this->root, '/')) === false) {
+            throw new FileStorageException(\sprintf(
                 'Invalid public path "%s"',
                 $publicPath
             ));
