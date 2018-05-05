@@ -122,6 +122,7 @@ class DocumentsSyncCommand extends Command
                     $queue = \msg_get_queue(self::QUEUE_KEY);
 
                     $this->childProcess($connection, $output, $queue);
+
                     break;
 
                 default:
@@ -163,58 +164,88 @@ class DocumentsSyncCommand extends Command
     /**
      * @param FTPConnection   $connection A FTPConnection instance.
      * @param OutputInterface $output     A OutputInterface instance.
-     * @param resource        $queue      A openned queue resource.
+     * @param resource        $queue      A opened queue resource.
      *
-     * @return void
+     * @return string[]
      */
     public function childProcess(
         FTPConnection $connection,
         OutputInterface $output,
         $queue
     ) {
+        $errors = [];
         $msgtype = null;
         $data = null;
         $err = null;
         $pid = \posix_getpid();
 
         while (true) {
-            \msg_receive($queue, 12, $msgtype, 10000, $data, true, 0, $err);
+            try {
+                \msg_receive($queue, 12, $msgtype, 10000, $data, true, 0, $err);
 
-            list ($directory, $document) = $data;
-            $srcPath = $directory .'/'. $document;
+                list ($directory, $document) = $data;
+                $srcPath = $directory . '/' . $document;
 
-            $matches = [];
-            if ((preg_match(self::FILENAME_PATTERN, $document, $matches) !== 1) || ! isset($matches['year'])) {
+                $matches = [];
+                if ((preg_match(self::FILENAME_PATTERN, $document, $matches) !== 1) || ! isset($matches[ 'year' ])) {
+                    $output->writeln(
+                        \sprintf(
+                            '<error>[CHILD %s] Can\'t determine destination path for "%s"</error>',
+                            $pid,
+                            $srcPath
+                        )
+                    );
+                }
+
+                $destPath = $directory . '/' . $matches[ 'year' ] . '/' . $document;
+
+                if ($this->azureStorage->isExists($destPath)) {
+                    $output->writeln(
+                        \sprintf(
+                            '[CHILD %s] File "%s" is already exists, skip',
+                            $pid,
+                            $destPath
+                        )
+                    );
+
+                    continue;
+                }
+
+                $output->writeln(
+                    \sprintf(
+                        '[CHILD %s] Start moving file "%s" to "%s"',
+                        $pid,
+                        $srcPath,
+                        $destPath
+                    )
+                );
+
+                $file = $connection->getFile($srcPath);
+                $this->azureStorage->store(new Stream($file), $destPath);
+
+                \usleep(500000);
+            } catch (\Throwable $exception) {
                 $output->writeln(\sprintf(
-                    '<error>[CHILD %s] Can\'t determine destination path for "%s"</error>',
-                    $pid,
-                    $srcPath
+                    '<error>Got exception while processing file: [%s:%s] %s</error>',
+                    $exception->getFile(),
+                    $exception->getFile(),
+                    $exception->getMessage()
                 ));
+                $errors[] = \sprintf(
+                    'Can\'t process file "%s", %s %s',
+                    $srcPath,
+                    \get_class($exception),
+                    $exception->getMessage()
+                );
             }
+        }
 
-            $destPath = $directory .'/'. $matches['year'] .'/'. $document;
-
-            if ($this->azureStorage->isExists($destPath)) {
-                $output->writeln(\sprintf(
-                    '[CHILD %s] File "%s" is already exists, skip',
-                    $pid,
-                    $destPath
-                ));
-
-                continue;
-            }
-
+        foreach ($errors as $error) {
             $output->writeln(\sprintf(
-                '[CHILD %s] Start moving file "%s" to "%s"',
+                '<error>[CHILD %s] %s</error>',
                 $pid,
-                $srcPath,
-                $destPath
+                $error
             ));
-
-            $file = $connection->getFile($srcPath);
-            $this->azureStorage->store(new Stream($file), $destPath);
-
-            \usleep(500000);
         }
     }
 
