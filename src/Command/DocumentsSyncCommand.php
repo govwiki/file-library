@@ -77,7 +77,7 @@ class DocumentsSyncCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $concurrency = (int) $input->getOption('concurrency');
-        $transform = $input->hasOption('transform');
+        $transform = $input->getOption('transform');
 
         $host = $input->getArgument('host');
         $port = (int) $input->getOption('port');
@@ -92,9 +92,9 @@ class DocumentsSyncCommand extends Command
             $port
         ));
         if ($transform) {
-            $output->writeln('with transformation');
+            $output->writeln('<info><options=bold>with</> transformation</info>');
         } else {
-            $output->writeln('without transformation');
+            $output->writeln('<info><options=bold>without</> transformation</info>');
         }
 
         //
