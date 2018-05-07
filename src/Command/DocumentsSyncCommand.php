@@ -370,9 +370,7 @@ class DocumentsSyncCommand extends Command
             ));
 
             foreach ($documents as $document) {
-                if (\preg_match(self::DOCUMENT_PATTERN, $document)) {
-                    \msg_send($queue, 12, [ $directory, $document ]);
-                }
+                \msg_send($queue, 12, [ $directory, $document ]);
             }
         }
 
