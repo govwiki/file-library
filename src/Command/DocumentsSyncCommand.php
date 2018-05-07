@@ -52,10 +52,11 @@ class DocumentsSyncCommand extends Command
             ->setDescription('Move documents from ftp to azure storage.')
             ->addArgument('host', InputArgument::REQUIRED, 'FTP host from which we get documents')
             ->addArgument('directories', InputArgument::REQUIRED, 'Comma separated list of directories names which is used for sync')
-            ->addOption('concurrency', 'c', InputOption::VALUE_OPTIONAL, 'Concurrency connection count', 4)
-            ->addOption('port', 'x', InputOption::VALUE_OPTIONAL, 'FTP server port', 21)
-            ->addOption('user', 'u', InputOption::VALUE_OPTIONAL, 'Username which is used for authentication')
-            ->addOption('password', 'p', InputOption::VALUE_OPTIONAL, 'Password which is used for authentication');
+            ->addOption('concurrency', 'c', InputOption::VALUE_REQUIRED, 'Concurrency connection count', 4)
+            ->addOption('port', 'x', InputOption::VALUE_REQUIRED, 'FTP server port', 21)
+            ->addOption('user', 'u', InputOption::VALUE_REQUIRED, 'Username which is used for authentication')
+            ->addOption('password', 'p', InputOption::VALUE_REQUIRED, 'Password which is used for authentication')
+            ->addOption('transform', 't', InputOption::VALUE_NONE, 'Transform documents or not');
     }
 
     /**
@@ -76,6 +77,7 @@ class DocumentsSyncCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $concurrency = (int) $input->getOption('concurrency');
+        $transform = $input->hasOption('transform');
 
         $host = $input->getArgument('host');
         $port = (int) $input->getOption('port');
@@ -84,11 +86,16 @@ class DocumentsSyncCommand extends Command
         $user = $input->getOption('user');
         $password = $input->getOption('password');
 
-        $output->writeln(\sprintf(
-            '<info>Start fetching documents from %s:%s to azure file storage</info>',
+        $output->write(\sprintf(
+            '<info>Start fetching documents from %s:%s to azure file storage </info>',
             $host,
             $port
         ));
+        if ($transform) {
+            $output->writeln('with transformation');
+        } else {
+            $output->writeln('without transformation');
+        }
 
         //
         // Start child process.
@@ -121,7 +128,11 @@ class DocumentsSyncCommand extends Command
 
                     $queue = \msg_get_queue(self::QUEUE_KEY);
 
-                    $this->childProcess($connection, $output, $queue);
+                    if ($transform) {
+                        $this->childProcessWithTransformation($connection, $output, $queue);
+                    } else {
+                        $this->childProcessWithoutTransformation($connection, $output, $queue);
+                    }
 
                     break;
 
@@ -166,9 +177,89 @@ class DocumentsSyncCommand extends Command
      * @param OutputInterface $output     A OutputInterface instance.
      * @param resource        $queue      A opened queue resource.
      *
-     * @return string[]
+     * @return void
      */
-    public function childProcess(
+    public function childProcessWithoutTransformation(
+        FTPConnection $connection,
+        OutputInterface $output,
+        $queue
+    ) {
+        $errors = [];
+        $msgtype = null;
+        $data = null;
+        $err = null;
+        $pid = \posix_getpid();
+
+        while (true) {
+            try {
+                \msg_receive($queue, 12, $msgtype, 10000, $data, true, 0, $err);
+
+                list ($directory, $document) = $data;
+                if ($document[0] === '.') {
+                    //
+                    // Don't copy hidden files.
+                    //
+                    continue;
+                }
+
+                $path = $directory . '/' . $document;
+
+                if ($this->azureStorage->isExists($path)) {
+                    $output->writeln(
+                        \sprintf(
+                            '[CHILD %s] File "%s" is already exists, skip',
+                            $pid,
+                            $path
+                        )
+                    );
+
+                    continue;
+                }
+
+                $output->writeln(
+                    \sprintf(
+                        '[CHILD %s] Start moving file "%s" to "%s"',
+                        $pid,
+                        $path,
+                        $path
+                    )
+                );
+
+                $file = $connection->getFile($path);
+                $this->azureStorage->store(new Stream($file), $path);
+            } catch (\Throwable $exception) {
+                $output->writeln(\sprintf(
+                    '<error>Got exception while processing file: [%s:%s] %s</error>',
+                    $exception->getFile(),
+                    $exception->getFile(),
+                    $exception->getMessage()
+                ));
+                $errors[] = \sprintf(
+                    'Can\'t process file "%s", %s %s',
+                    $path,
+                    \get_class($exception),
+                    $exception->getMessage()
+                );
+            }
+        }
+
+        foreach ($errors as $error) {
+            $output->writeln(\sprintf(
+                '<error>[CHILD %s] %s</error>',
+                $pid,
+                $error
+            ));
+        }
+    }
+
+    /**
+     * @param FTPConnection   $connection A FTPConnection instance.
+     * @param OutputInterface $output     A OutputInterface instance.
+     * @param resource        $queue      A opened queue resource.
+     *
+     * @return void
+     */
+    public function childProcessWithTransformation(
         FTPConnection $connection,
         OutputInterface $output,
         $queue
@@ -187,7 +278,7 @@ class DocumentsSyncCommand extends Command
                 $srcPath = $directory . '/' . $document;
 
                 $matches = [];
-                if ((preg_match(self::FILENAME_PATTERN, $document, $matches) !== 1) || ! isset($matches[ 'year' ])) {
+                if ((preg_match(self::FILENAME_PATTERN, $document, $matches) !== 1) || ! isset($matches['year'])) {
                     $output->writeln(
                         \sprintf(
                             '<error>[CHILD %s] Can\'t determine destination path for "%s"</error>',
@@ -197,7 +288,7 @@ class DocumentsSyncCommand extends Command
                     );
                 }
 
-                $destPath = $directory . '/' . $matches[ 'year' ] . '/' . $document;
+                $destPath = $directory . '/' . $matches['year'] . '/' . $document;
 
                 if ($this->azureStorage->isExists($destPath)) {
                     $output->writeln(
@@ -222,8 +313,6 @@ class DocumentsSyncCommand extends Command
 
                 $file = $connection->getFile($srcPath);
                 $this->azureStorage->store(new Stream($file), $destPath);
-
-                \usleep(500000);
             } catch (\Throwable $exception) {
                 $output->writeln(\sprintf(
                     '<error>Got exception while processing file: [%s:%s] %s</error>',
