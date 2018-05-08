@@ -29,7 +29,7 @@ abstract class AbstractController
         /** @psalm-suppress MixedAssignment */
         $argument = $args[$name];
 
-        if (! is_string($argument)) {
+        if (! \is_string($argument)) {
             throw new \InvalidArgumentException(sprintf(
                 'Parameter "%s" should be string',
                 $name

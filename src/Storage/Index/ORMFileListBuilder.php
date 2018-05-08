@@ -1,21 +1,21 @@
 <?php
 
-namespace App\Service\FileStorage\FileList;
+namespace App\Storage\Index;
 
 use App\Entity\AbstractFile;
 use App\Entity\Directory;
 use App\Entity\Document;
+use App\Storage\FileListBuilderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\QueryBuilder;
 
 /**
- * Class ORMIndexFileList
+ * Class ORMFileListBuilder
  *
- * @package App\Service\FileStorage\FileList
- * @deprecated See FileListInterface
+ * @package App\Storage\Index
  */
-class ORMIndexFileList implements FileListInterface
+class ORMFileListBuilder implements FileListBuilderInterface
 {
 
     const SORTED_FIELDS = [ 'name', 'fileSize' ];

@@ -2,9 +2,11 @@
 
 namespace App\Command;
 
-use App\Service\FileStorage\FileList\FileInterface;
-use App\Service\FileStorage\FileStorageInterface;
-use App\Service\FileStorage\Index\FileStorageIndexInterface;
+use App\Storage\Adapter\File\AbstractFile;
+use App\Storage\Adapter\File\Directory;
+use App\Storage\Adapter\File\File;
+use App\Storage\Adapter\StorageAdapterInterface;
+use App\Storage\Index\StorageIndexInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -17,42 +19,34 @@ use Symfony\Component\Console\Output\OutputInterface;
 class IndexCommand extends Command
 {
 
-    const BUCKET_SIZE = 25;
     const NAME = 'document:index';
 
-    const DOCUMENT_PATTERN = '/([A-Z]{2})\s+(.*?)\s+(\d{4})\.pdf/i';
+    /**
+     * @var StorageAdapterInterface
+     */
+    private $adapter;
 
     /**
-     * @var FileStorageInterface
+     * @var StorageIndexInterface
      */
-    private $fileStorage;
-
-    /**
-     * @var FileStorageIndexInterface
-     */
-    private $fileStorageIndex;
-
-    /**
-     * @var integer
-     */
-    private $bucketCount = 0;
+    private $index;
 
     /**
      * IndexCommand constructor.
      *
-     * @param FileStorageIndexInterface $fileStorageIndex A FileStorageIndexInterface
-     *                                                    instance.
-     * @param FileStorageInterface      $fileStorage      A FileStorageInterface
-     *                                                    instance.
+     * @param StorageAdapterInterface $adapter A StorageAdapterInterface
+     *                                         instance.
+     * @param StorageIndexInterface   $index   A StorageIndexInterface
+     *                                         instance.
      */
     public function __construct(
-        FileStorageIndexInterface $fileStorageIndex,
-        FileStorageInterface $fileStorage
+        StorageAdapterInterface $adapter,
+        StorageIndexInterface $index
     ) {
         parent::__construct(self::NAME);
 
-        $this->fileStorageIndex = $fileStorageIndex;
-        $this->fileStorage = $fileStorage;
+        $this->adapter = $adapter;
+        $this->index = $index;
     }
 
     /**
@@ -62,7 +56,7 @@ class IndexCommand extends Command
      */
     protected function configure()
     {
-        $this->setDescription('Recursively index documents in root path.');
+        $this->setDescription('Recursively (re)index documents in storage.');
     }
 
     /**
@@ -84,48 +78,41 @@ class IndexCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $output->write('> Clear file index: ');
-        $this->fileStorageIndex->clear();
+        $output->write('> Clear and storage index: ');
+        $this->index->clearIndex();
         $output->writeln('[ <info>OK</info> ]');
 
-        $output->writeln('> Index documents in file storage root directory: ');
-        $this->indexDocument('/', $output);
-        $output->writeln('> Index documents in file storage root directory: [ <info>OK</info> ]');
+        $output->writeln('> Index files:');
+        $output->writeln('');
+        $this->indexDirectory($output, '/');
 
         return 0;
     }
 
     /**
-     * @param string          $path   A path to indexed directory.
-     * @param OutputInterface $output A OutputInterface instance.
+     * @param OutputInterface $output An OutputInterface instance.
+     * @param string          $path   Path to indexed file.
      *
      * @return void
      */
-    private function indexDocument(
-        string $path,
-        OutputInterface $output
-    ) {
-        $output->writeln(sprintf("\t<comment>Process \"%s\" directory</comment>", $path));
-        $iterator = $this->fileStorage->listFiles($path);
+    protected function indexDirectory(OutputInterface $output, string $path)
+    {
+        $output->writeln(\sprintf('  Index directory "%s"', $path));
+        $files = $this->adapter->listFiles($path);
 
-        /** @var FileInterface $file */
-        foreach ($iterator as $file) {
-            $name = $file->getName();
-            $filePath = rtrim($path, '/') .'/'. $name;
+        /** @var AbstractFile $file */
+        foreach ($files as $file) {
+            switch (true) {
+                case $file instanceof Directory:
+                    $this->index->index($file->getPath(), true);
+                    $this->indexDirectory($output, $file->getPath());
+                    break;
 
-            if ($file->isDirectory()) {
-                $this->fileStorageIndex->index($filePath)->flush();
-                $this->indexDocument($filePath, $output);
-            } else {
-                $this->fileStorageIndex->index($filePath, false, $file->getSize());
-            }
-
-            if (++$this->bucketCount === self::BUCKET_SIZE) {
-                $this->fileStorageIndex->flush();
-                $this->bucketCount = 0;
+                case $file instanceof File:
+                    $output->writeln(\sprintf('    Index file "%s"', $file->getPath()));
+                    $this->index->index($file->getPath(), false, $file->getSize());
+                    break;
             }
         }
-
-        $this->fileStorageIndex->flush();
     }
 }

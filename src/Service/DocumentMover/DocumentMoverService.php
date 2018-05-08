@@ -4,7 +4,7 @@ namespace App\Service\DocumentMover;
 
 use App\Entity\Directory;
 use App\Entity\Document;
-use App\Service\FileStorage\FileStorageInterface;
+use App\Storage\Storage;
 
 /**
  * Class DocumentMoverService
@@ -17,18 +17,18 @@ class DocumentMoverService
     const FILENAME_PATTERN = '/(?P<year>\d{4})\.\w+$/';
 
     /**
-     * @var FileStorageInterface
+     * @var Storage
      */
-    private $fileStorage;
+    private $storage;
 
     /**
      * DocumentMoverService constructor.
      *
-     * @param FileStorageInterface $fileStorage A FileStorageInterface instance.
+     * @param Storage $storage A Storage instance.
      */
-    public function __construct(FileStorageInterface $fileStorage)
+    public function __construct(Storage $storage)
     {
-        $this->fileStorage = $fileStorage;
+        $this->storage = $storage;
     }
 
     /**
@@ -41,6 +41,12 @@ class DocumentMoverService
      */
     public function move(Document $document, Directory $topLevelDirectory = null, string $name = null)
     {
+        $file = $this->storage->getFile($document->getPublicPath());
+
+        if ($file === null) {
+            return;
+        }
+
         //
         // Build path to top level directory.
         //
@@ -56,10 +62,7 @@ class DocumentMoverService
 
         $year = $this->getYearFromDocumentName($name);
 
-        $this->fileStorage->move(
-            $document->getPublicPath(),
-            $path .'/'. $year .'/'. $name
-        );
+        $file->move($path .'/'. $year .'/'. $name);
     }
 
     /**

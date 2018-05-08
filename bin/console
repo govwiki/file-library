@@ -34,15 +34,14 @@ $console->setHelperSet(new \Symfony\Component\Console\Helper\HelperSet([
 
 $console->addCommands([
     new \App\Command\IndexCommand(
-        $container->get(\App\Service\FileStorage\Index\FileStorageIndexInterface::class),
-        $container->get(\App\Service\FileStorage\FilesystemFileStorage::class)
+        $container->get(\App\Storage\Adapter\StorageAdapterInterface::class),
+        $container->get(\App\Storage\Index\StorageIndexInterface::class)
     ),
     new \App\Command\FixtureCommand($em, ROOT_PATH . '/db/fixtures'),
     new \App\Command\AddUserCommand(
         $container->get(\App\Entity\EntityFactory::class),
         $container->get(\App\Repository\UserRepositoryInterface::class)
     ),
-    new \App\Command\DocumentsSyncCommand($container->get(\App\Service\Storage\Physical\AzurePhysicalStorage::class)),
     new \Doctrine\DBAL\Migrations\Tools\Console\Command\DiffCommand(),
     new \Doctrine\DBAL\Migrations\Tools\Console\Command\ExecuteCommand(),
     new \Doctrine\DBAL\Migrations\Tools\Console\Command\GenerateCommand(),

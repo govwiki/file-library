@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Service\FileStorage\FileList;
+namespace App\Storage;
 
 /**
- * interface FileListInterface
+ * Interface FileListBuilderInterface
  *
- * @package App\Service\FileStorage\FileList
- * @deprecated This interface is split into two different. One for physical file storage and one for logical
+ * @package App\Storage
  */
-interface FileListInterface extends \Countable, \IteratorAggregate
+interface FileListBuilderInterface extends \Countable, \IteratorAggregate
 {
 
     /**

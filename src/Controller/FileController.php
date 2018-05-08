@@ -9,7 +9,7 @@ use App\Entity\User;
 use App\Repository\FileRepositoryInterface;
 use App\Service\DocumentMover\DocumentMoverException;
 use App\Service\DocumentMover\DocumentMoverService;
-use App\Service\FileStorage\FileStorageInterface;
+use App\Storage\Storage;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Slim\Exception\NotFoundException;
@@ -36,9 +36,9 @@ class FileController extends AbstractController
     private $repository;
 
     /**
-     * @var FileStorageInterface
+     * @var Storage
      */
-    private $fileStorage;
+    private $storage;
 
     /**
      * @var DocumentMoverService
@@ -51,20 +51,19 @@ class FileController extends AbstractController
      * @param Twig                    $renderer      A template renderer.
      * @param FileRepositoryInterface $repository    A FileRepositoryInterface
      *                                               instance.
-     * @param FileStorageInterface    $fileStorage   A FileStorageInterface
-     *                                               instance.
+     * @param Storage                 $storage       A Storage instance.
      * @param DocumentMoverService    $documentMover A DocumentMoverService
      *                                               instance.
      */
     public function __construct(
         Twig $renderer,
         FileRepositoryInterface $repository,
-        FileStorageInterface $fileStorage,
+        Storage $storage,
         DocumentMoverService $documentMover
     ) {
         $this->renderer = $renderer;
         $this->repository = $repository;
-        $this->fileStorage = $fileStorage;
+        $this->storage = $storage;
         $this->documentMover = $documentMover;
     }
 
@@ -100,6 +99,11 @@ class FileController extends AbstractController
                 ]);
 
             case $file instanceof Document:
+                $internalFile = $this->storage->getFile($file->getPublicPath());
+                if ($internalFile === null) {
+                    throw new NotFoundException($request, $response);
+                }
+
                 return $response
                     ->withHeader('Content-Type', 'application/force-download')
                     ->withHeader('Content-Type', 'application/octet-stream')
@@ -113,7 +117,7 @@ class FileController extends AbstractController
                     ->withHeader('Expires', '0')
                     ->withHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
                     ->withHeader('Pragma', 'public')
-                    ->withBody($this->fileStorage->read($file->getPublicPath()));
+                    ->withBody($internalFile->getContent());
         }
 
         throw new NotFoundException($request, $response);
@@ -150,7 +154,12 @@ class FileController extends AbstractController
         $search = $request->getQueryParam('search', '');
         $limit = (int) $request->getQueryParam('limit');
 
-        $list = $this->fileStorage->listFiles($publicPath)
+        $directory = $this->storage->getDirectory($publicPath);
+        if ($directory === null) {
+            throw new NotFoundException($request, $response);
+        }
+
+        $list = $directory->getListBuilder()
             ->onlyDocuments($search !== '')
             ->recursive($search !== '')
             ->filterBy($search)
@@ -163,10 +172,12 @@ class FileController extends AbstractController
                 ->setOffset($request->getQueryParam('offset'));
         }
 
+        $count = count($list);
+
         return $response->withJson([
             'draw' => $request->getQueryParam('draw'),
-            'recordsTotal' => $list->count(),
-            'recordsFiltered' => $list->count(),
+            'recordsTotal' => $count,
+            'recordsFiltered' => $count,
             'data' => iterator_to_array($list),
         ]);
     }
@@ -209,7 +220,10 @@ class FileController extends AbstractController
         /** @var UploadedFileInterface $file */
         $file = $files['file'];
 
-        $this->fileStorage->store($file->getStream(), $directory->getPublicPath() . '/'. $file->getClientFilename());
+        $this->storage->createFile(
+            $directory->getPublicPath() . '/'. $file->getClientFilename(),
+            $file->getStream()
+        );
 
         return $response
             ->withHeader('Content-Type', 'application/json;charset=utf-8')
@@ -229,7 +243,7 @@ class FileController extends AbstractController
     {
         $document = $this->getFileFromArgs($args);
 
-        $this->fileStorage->remove($document->getPublicPath());
+        $this->storage->remove($document->getPublicPath());
 
         return $response
             ->withHeader('Content-Type', 'application/json;charset=utf-8')

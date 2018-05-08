@@ -8,7 +8,7 @@ use App\Controller\SecurityController;
 use App\Repository\FileRepositoryInterface;
 use App\Service\Authenticator\AuthenticatorInterface;
 use App\Service\DocumentMover\DocumentMoverService;
-use App\Service\FileStorage\FileStorageInterface;
+use App\Storage\Storage;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouterInterface;
 use Slim\Views\Twig;
@@ -46,10 +46,10 @@ class ContainerControllersFactory
         }
 
         $container[DocumentMoverService::class] = function (ContainerInterface $container): DocumentMoverService {
-            /** @var FileStorageInterface $fileStorage */
-            $fileStorage = $container->get(FileStorageInterface::class);
+            /** @var Storage $storage */
+            $storage = $container->get(Storage::class);
 
-            return new DocumentMoverService($fileStorage);
+            return new DocumentMoverService($storage);
         };
 
         /**
@@ -64,12 +64,12 @@ class ContainerControllersFactory
             $view = $container->get('view');
             /** @var FileRepositoryInterface $repository */
             $repository = $container->get(FileRepositoryInterface::class);
-            /** @var FileStorageInterface $fileStorage */
-            $fileStorage = $container->get(FileStorageInterface::class);
+            /** @var Storage $storage */
+            $storage = $container->get(Storage::class);
             /** @var DocumentMoverService $mover */
             $mover = $container->get(DocumentMoverService::class);
 
-            return new FileController($view, $repository, $fileStorage, $mover);
+            return new FileController($view, $repository, $storage, $mover);
         };
 
         /**

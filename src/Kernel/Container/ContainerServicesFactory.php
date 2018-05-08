@@ -9,12 +9,11 @@ use App\Repository\FileRepositoryInterface;
 use App\Repository\UserRepositoryInterface;
 use App\Service\Authenticator\Authenticator;
 use App\Service\Authenticator\AuthenticatorInterface;
-use App\Service\FileStorage\FileStorageInterface;
-use App\Service\FileStorage\FilesystemFileStorage;
-use App\Service\FileStorage\Index\FileStorageIndexInterface;
-use App\Service\FileStorage\Index\ORMFileStorageIndex;
-use App\Service\FileStorage\IndexedFileStorage;
-use App\Service\Storage\Physical\AzurePhysicalStorage;
+use App\Storage\Adapter\AzureStorageAdapter;
+use App\Storage\Adapter\StorageAdapterInterface;
+use App\Storage\Index\ORMStorageIndex;
+use App\Storage\Index\StorageIndexInterface;
+use App\Storage\Storage;
 use Doctrine\Common\Inflector\Inflector;
 use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ORM\EntityManager;
@@ -168,9 +167,9 @@ class ContainerServicesFactory
         /**
          * @param ContainerInterface $container A ContainerInterface instance.
          *
-         * @return AzurePhysicalStorage
+         * @return StorageAdapterInterface
          */
-        $container[AzurePhysicalStorage::class] = function (ContainerInterface $container): AzurePhysicalStorage {
+        $container[StorageAdapterInterface::class] = function (ContainerInterface $container): StorageAdapterInterface {
             /** @var array{share: string, account_name: string, account_key: string} $settings */
             $settings = self::getSettings($container, 'azure', [
                 'share',
@@ -178,7 +177,7 @@ class ContainerServicesFactory
                 'account_key',
             ]);
 
-            return new AzurePhysicalStorage(
+            return new AzureStorageAdapter(
                 $settings['account_name'],
                 $settings['account_key'],
                 $settings['share']
@@ -188,27 +187,15 @@ class ContainerServicesFactory
         /**
          * @param ContainerInterface $container A ContainerInterface instance.
          *
-         * @return FileStorageIndexInterface
+         * @return StorageIndexInterface
          */
-        $container[FileStorageIndexInterface::class] = function (ContainerInterface $container): FileStorageIndexInterface {
+        $container[StorageIndexInterface::class] = function (ContainerInterface $container): StorageIndexInterface {
             /** @var EntityManagerInterface $em */
             $em = $container->get('em');
             /** @var EntityFactory $factory */
             $factory = $container->get(EntityFactory::class);
 
-            return new ORMFileStorageIndex($factory, $em);
-        };
-
-        /**
-         * @param ContainerInterface $container A ContainerInterface instance.
-         *
-         * @return FilesystemFileStorage
-         */
-        $container[FilesystemFileStorage::class] = function (ContainerInterface $container): FilesystemFileStorage {
-            /** @var array{root: string} $settings */
-            $settings = self::getSettings($container, 'fileStorage', [ 'root' ]);
-
-            return new FilesystemFileStorage($settings['root']);
+            return new ORMStorageIndex($factory, $em);
         };
 
         /**
@@ -216,15 +203,15 @@ class ContainerServicesFactory
          *
          * @param ContainerInterface $container A ContainerInterface instance.
          *
-         * @return FileStorageInterface
+         * @return Storage
          */
-        $container[FileStorageInterface::class] = function (ContainerInterface $container): FileStorageInterface {
-            /** @var FilesystemFileStorage $fileStorage */
-            $fileStorage = $container->get(FilesystemFileStorage::class);
-            /** @var FileStorageIndexInterface $fileStorageIndex */
-            $fileStorageIndex = $container->get(FileStorageIndexInterface::class);
+        $container[Storage::class] = function (ContainerInterface $container): Storage {
+            /** @var StorageAdapterInterface $adapter */
+            $adapter = $container->get(StorageAdapterInterface::class);
+            /** @var StorageIndexInterface $index */
+            $index = $container->get(StorageIndexInterface::class);
 
-            return new IndexedFileStorage($fileStorage, $fileStorageIndex);
+            return new Storage($adapter, $index);
         };
 
         /**
