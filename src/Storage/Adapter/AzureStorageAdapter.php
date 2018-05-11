@@ -2,8 +2,6 @@
 
 namespace App\Storage\Adapter;
 
-use App\Storage\Adapter\File\Directory;
-use App\Storage\Adapter\File\File;
 use MicrosoftAzure\Storage\Common\Exceptions\ServiceException;
 use MicrosoftAzure\Storage\File\FileRestProxy;
 use Psr\Http\Message\StreamInterface;
@@ -49,11 +47,11 @@ class AzureStorageAdapter implements StorageAdapterInterface
     /**
      * @param string $path Path to created directory.
      *
-     * @return Directory
+     * @return void
      *
      * @api
      */
-    public function createDirectory(string $path): Directory
+    public function createDirectory(string $path): void
     {
         $parts = \explode('/', $path);
         $currPath = '';
@@ -70,41 +68,17 @@ class AzureStorageAdapter implements StorageAdapterInterface
                 $this->client->createDirectory($this->share, $currPath);
             }
         }
-
-        return new Directory($this, $path);
-    }
-
-    /**
-     * @param string $path Path to required directory.
-     *
-     * @return Directory|null
-     */
-    public function getDirectory(string $path)
-    {
-        $path = self::normalizeDirectoryPath($path);
-
-        try {
-            $this->client->getDirectoryMetadata($this->share, $path);
-        } catch (ServiceException $exception) {
-            if ($exception->getCode() !== 404) {
-                throw $exception;
-            }
-
-            return null;
-        }
-
-        return new Directory($this, $path);
     }
 
     /**
      * @param string          $path    Path where file should be created.
      * @param StreamInterface $content Stored file content.
      *
-     * @return File
+     * @return void
      *
      * @api
      */
-    public function createFile(string $path, StreamInterface $content): File
+    public function createFile(string $path, StreamInterface $content)
     {
         $this->createDirectory(\dirname($path));
 
@@ -113,28 +87,6 @@ class AzureStorageAdapter implements StorageAdapterInterface
             $path,
             $content
         );
-
-        return new File($this, $path, $content->getSize(), $content);
-    }
-
-    /**
-     * @param string $path Path to required file.
-     *
-     * @return File|null
-     */
-    public function getFile(string $path)
-    {
-        try {
-            $metadata = $this->client->getFileMetadata($this->share, $path);
-        } catch (ServiceException $exception) {
-            if ($exception->getCode() !== 404) {
-                throw $exception;
-            }
-
-            return null;
-        }
-
-        return new File($this, $path, $metadata->getMetadata()['length']);
     }
 
     /**
@@ -143,26 +95,24 @@ class AzureStorageAdapter implements StorageAdapterInterface
      * @param string $path
      *
      * @return \Traversable
-     * @psalm-return \Traversable<File/File>
+     * @psalm-return \Traversable<AdapterFile>
      *
      * @api
      */
     public function listFiles(string $path): \Traversable
     {
-        $path = self::normalizeDirectoryPath($path);
+        $result = $this->client->listDirectoriesAndFiles($this->share, self::normalizePath($path));
 
-        $result = $this->client->listDirectoriesAndFiles($this->share, $path);
+        $path = $path === '/' ? '' : $path;
 
         foreach ($result->getDirectories() as $directory) {
-            yield new Directory(
-                $this,
+            yield AdapterFile::createDirectory(
                 $path .'/'. $directory->getName()
             );
         }
 
         foreach ($result->getFiles() as $file) {
-            yield new File(
-                $this,
+            yield AdapterFile::createFile(
                 $path .'/'. $file->getName(),
                 $file->getLength()
             );
@@ -179,6 +129,9 @@ class AzureStorageAdapter implements StorageAdapterInterface
      */
     public function move(string $srcPath, string $destPath)
     {
+        $srcPath = self::normalizePath($srcPath);
+        $destPath = self::normalizePath($destPath);
+
         $this->client->copyFile($this->share, $destPath, $srcPath);
     }
 
@@ -191,7 +144,7 @@ class AzureStorageAdapter implements StorageAdapterInterface
      */
     public function remove(string $path)
     {
-        $path = self::normalizeDirectoryPath($path);
+        $path = self::normalizePath($path);
 
         $this->client->deleteFile($this->share, $path);
     }
@@ -205,6 +158,7 @@ class AzureStorageAdapter implements StorageAdapterInterface
      */
     public function read(string $path): StreamInterface
     {
+        $path = self::normalizePath($path);
         $result = $this->client->getFile($this->share, $path);
 
         return new Stream($result->getContentStream());
@@ -215,17 +169,13 @@ class AzureStorageAdapter implements StorageAdapterInterface
      *
      * @return string
      */
-    private static function normalizeDirectoryPath(string $path): string
+    private static function normalizePath(string $path): string
     {
         //
         // For some reasons Azure file storage return "The specifed resource name
-        // contains invalid characters." error if we try to request root directory
-        // by "/" as normal people do.
+        // contains invalid characters." error if we try to request directory by
+        // path with "/" character at first place as normal people do ...
         //
-        if ($path === '/') {
-            $path = '.';
-        }
-
-        return $path;
+        return \ltrim($path, '/');
     }
 }

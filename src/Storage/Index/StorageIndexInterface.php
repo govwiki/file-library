@@ -2,6 +2,8 @@
 
 namespace App\Storage\Index;
 
+use App\Entity\Directory;
+use App\Entity\Document;
 use App\Storage\FileListBuilderInterface;
 
 /**
@@ -13,44 +15,61 @@ interface StorageIndexInterface
 {
 
     /**
-     * @param string $path Path to directory.
+     * @param string $path Path to created directory.
+     *
+     * @return $this
+     *
+     * @api
+     */
+    public function createDirectory(string $path);
+
+    /**
+     * @param string $path Path to required directory.
+     *
+     * @return Directory|null
+     */
+    public function getDirectory(string $path);
+
+    /**
+     * @param string  $path Path where file should be created.
+     * @param integer $size Stored file size.
+     *
+     * @return $this
+     *
+     * @api
+     */
+    public function createFile(string $path, int $size);
+
+    /**
+     * @param string $path Path to required file.
+     *
+     * @return Document|null
+     */
+    public function getFile(string $path);
+
+    /**
+     * @param string|null $path Path to directory.
      *
      * @return FileListBuilderInterface
      */
-    public function createFileListBuilder(string $path): FileListBuilderInterface;
+    public function createFileListBuilder(string $path = null): FileListBuilderInterface;
 
     /**
-     * @param string $srcPath  Path to moved file.
-     * @param string $destPath Destination path.
+     * @param string $srcPath  Path from which we should move file.
+     * @param string $destPath Path to which we should move.
      *
      * @return void
+     *
+     * @api
      */
     public function move(string $srcPath, string $destPath);
 
     /**
-     * @param string  $path        Path to indexed file.
-     * @param boolean $isDirectory True if indexed file is directory.
-     * @param integer $size        Size of indexed file, make sense only for documents.
-     *
-     * @return void
-     */
-    public function index(string $path, bool $isDirectory, int $size = 0);
-
-    /**
-     * @param string  $path        Path to indexed file.
-     * @param boolean $isDirectory True if indexed file is directory.
-     * @param integer $size        Size of indexed file, make sense only for documents.
+     * @param string $path A path to removed file.
      *
      * @return void
      *
-     * @see StorageIndexInterface::flush()
-     */
-    public function deferIndex(string $path, bool $isDirectory, int $size = 0);
-
-    /**
-     * @param string $path A removed indexed file.
-     *
-     * @return void
+     * @api
      */
     public function remove(string $path);
 

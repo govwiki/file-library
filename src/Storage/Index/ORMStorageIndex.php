@@ -3,6 +3,8 @@
 namespace App\Storage\Index;
 
 use App\Entity\AbstractFile;
+use App\Entity\Directory;
+use App\Entity\Document;
 use App\Entity\EntityFactory;
 use App\Repository\FileRepositoryInterface;
 use App\Storage\FileListBuilderInterface;
@@ -35,6 +37,12 @@ class ORMStorageIndex implements StorageIndexInterface
     private $em;
 
     /**
+     * @var Directory[]
+     * @psalm-var Array<string, Directory>
+     */
+    private $createdDirectories = [];
+
+    /**
      * ORMStorageIndex constructor.
      *
      * @param EntityFactory          $entityFactory
@@ -49,11 +57,93 @@ class ORMStorageIndex implements StorageIndexInterface
     }
 
     /**
-     * @param string $path Path to directory.
+     * @param string $path Path to created directory.
+     *
+     * @return $this
+     *
+     * @api
+     */
+    public function createDirectory(string $path)
+    {
+        $this->createDirectoryByPath($path);
+
+        return $this;
+    }
+
+    /**
+     * @param string $path Path to required directory.
+     *
+     * @return Directory|null
+     */
+    public function getDirectory(string $path)
+    {
+        /** @var FileRepositoryInterface $repository */
+        $repository = $this->em->getRepository(AbstractFile::class);
+
+        $directory = $repository->findByPublicPath($path);
+
+        if (($directory === null) || (! $directory instanceof Directory)) {
+            return null;
+        }
+
+        return $directory;
+    }
+
+    /**
+     * @param string  $path Path where file should be created.
+     * @param integer $size Stored file size.
+     *
+     * @return $this
+     *
+     * @api
+     */
+    public function createFile(string $path, int $size)
+    {
+        $directoryPath = \dirname($path);
+
+        $directory = $this->getDirectory($directoryPath);
+        if ($directory === null) {
+            $directory = $this->createDirectoryByPath($directoryPath);
+        }
+
+        $this->em->persist($this->entityFactory->createDocument(
+            \basename($path),
+            $size,
+            $directory
+        ));
+
+        if (++$this->deferredBucketSize >= self::MAX_DEFERRED_BUCKET_SIZE) {
+            $this->flush();
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param string $path Path to required file.
+     *
+     * @return Document|null
+     */
+    public function getFile(string $path)
+    {
+        /** @var FileRepositoryInterface $repository */
+        $repository = $this->em->getRepository(AbstractFile::class);
+
+        $document = $repository->findByPublicPath($path);
+
+        if (($document === null) || (! $document instanceof Document)) {
+            return null;
+        }
+
+        return $document;
+    }
+
+    /**
+     * @param string|null $path Path to directory.
      *
      * @return FileListBuilderInterface
      */
-    public function createFileListBuilder(string $path): FileListBuilderInterface
+    public function createFileListBuilder(string $path = null): FileListBuilderInterface
     {
         return new ORMFileListBuilder($this->em, $path);
     }
@@ -76,54 +166,7 @@ class ORMStorageIndex implements StorageIndexInterface
 
         if ($file !== null) {
             $this->em->remove($file);
-            $this->index($file->getPublicPath(), $file->isDirectory(), $file->getFileSize());
-        }
-    }
-
-    /**
-     * @param string  $path        Path to indexed file.
-     * @param boolean $isDirectory True if indexed file is directory.
-     * @param integer $size        Size of indexed file, make sense only for documents.
-     *
-     * @return void
-     */
-    public function index(string $path, bool $isDirectory, int $size = 0)
-    {
-        $this->deferIndex($path, $isDirectory, $size);
-        $this->flush();
-    }
-
-    /**
-     * @param string  $path        Path to indexed file.
-     * @param boolean $isDirectory True if indexed file is directory.
-     * @param integer $size        Size of indexed file, make sense only for documents.
-     *
-     * @return void
-     *
-     * @see StorageIndexInterface::flush()
-     */
-    public function deferIndex(string $path, bool $isDirectory, int $size = 0)
-    {
-        $parts = explode('/', $path);
-        array_shift($parts);
-
-        if ($isDirectory) {
-            $directory = $this->entityFactory->createDirectoryByPath($parts);
-            $this->em->persist($directory);
-        } else {
-            $name = array_pop($parts);
-            $directory = $this->entityFactory->createDirectoryByPath($parts);
-
-            $this->em->persist($directory);
-            $this->em->persist($this->entityFactory->createDocument(
-                $name,
-                $size,
-                $directory
-            ));
-        }
-
-        if (++$this->deferredBucketSize >= self::MAX_DEFERRED_BUCKET_SIZE) {
-            $this->flush();
+            $this->createFile($file->getPublicPath(), $file->getFileSize());
         }
     }
 
@@ -140,6 +183,10 @@ class ORMStorageIndex implements StorageIndexInterface
         $file = $repository->findByPublicPath($path);
         if ($file !== null) {
             $this->em->remove($file);
+        }
+
+        if (++$this->deferredBucketSize >= self::MAX_DEFERRED_BUCKET_SIZE) {
+            $this->flush();
         }
     }
 
@@ -167,6 +214,28 @@ class ORMStorageIndex implements StorageIndexInterface
     public function flush()
     {
         $this->deferredBucketSize = 0;
+        $this->createdDirectories = [];
         $this->em->flush();
+    }
+
+    /**
+     * @param string $path Path to created directory.
+     *
+     * @return Directory
+     */
+    private function createDirectoryByPath(string $path): Directory
+    {
+        $parts = \explode('/', $path);
+        \array_shift($parts);
+
+        $directory = $this->entityFactory->createDirectoryByPath($parts);
+        $this->em->persist($directory);
+
+        //
+        // All directories should be flushed immediately.
+        //
+        $this->em->flush($directory);
+
+        return $directory;
     }
 }

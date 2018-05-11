@@ -2,9 +2,7 @@
 
 namespace App\Command;
 
-use App\Storage\Adapter\File\AbstractFile;
-use App\Storage\Adapter\File\Directory;
-use App\Storage\Adapter\File\File;
+use App\Storage\Adapter\AdapterFile;
 use App\Storage\Adapter\StorageAdapterInterface;
 use App\Storage\Index\StorageIndexInterface;
 use Symfony\Component\Console\Command\Command;
@@ -85,6 +83,7 @@ class IndexCommand extends Command
         $output->writeln('> Index files:');
         $output->writeln('');
         $this->indexDirectory($output, '/');
+        $this->index->flush();
 
         return 0;
     }
@@ -100,18 +99,14 @@ class IndexCommand extends Command
         $output->writeln(\sprintf('  Index directory "%s"', $path));
         $files = $this->adapter->listFiles($path);
 
-        /** @var AbstractFile $file */
+        /** @var AdapterFile $file */
         foreach ($files as $file) {
-            switch (true) {
-                case $file instanceof Directory:
-                    $this->index->index($file->getPath(), true);
-                    $this->indexDirectory($output, $file->getPath());
-                    break;
-
-                case $file instanceof File:
-                    $output->writeln(\sprintf('    Index file "%s"', $file->getPath()));
-                    $this->index->index($file->getPath(), false, $file->getSize());
-                    break;
+            if ($file->isDirectory()) {
+                $this->index->createDirectory($file->getPath());
+                $this->indexDirectory($output, $file->getPath());
+            } else {
+                $output->writeln(\sprintf('    Index file "%s"', $file->getPath()));
+                $this->index->createFile($file->getPath(), $file->getSize());
             }
         }
     }

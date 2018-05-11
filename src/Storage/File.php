@@ -2,7 +2,7 @@
 
 namespace App\Storage;
 
-use App\Storage\Adapter\File\File as AdapterFile;
+use App\Storage\Adapter\StorageAdapterInterface;
 use App\Storage\Index\StorageIndexInterface;
 use Psr\Http\Message\StreamInterface;
 
@@ -15,16 +15,34 @@ class File extends AbstractFile
 {
 
     /**
-     * File constructor.
+     * @var integer
+     */
+    private $size;
+
+    /**
+     * @var StreamInterface
+     */
+    private $content;
+
+    /**
+     * AbstractFile constructor.
      *
-     * @param AdapterFile           $file  Internal file from adapter.
-     * @param StorageIndexInterface $index StorageIndexInterface instance.
+     * @param StorageAdapterInterface $adapter A StorageAdapterInterface instance.
+     * @param StorageIndexInterface   $index   A StorageIndexInterface instance.
+     * @param string                  $path    Path to file.
+     * @param integer                 $size    Size of file.
+     * @param StreamInterface         $content File content.
      */
     public function __construct(
-        AdapterFile $file,
-        StorageIndexInterface $index
+        StorageAdapterInterface $adapter,
+        StorageIndexInterface $index,
+        string $path,
+        int $size,
+        StreamInterface $content = null
     ) {
-        parent::__construct($file, $index);
+        parent::__construct($adapter, $index, $path);
+        $this->size = $size;
+        $this->content = $content;
     }
 
     /**
@@ -34,7 +52,7 @@ class File extends AbstractFile
      */
     public function getSize(): int
     {
-        return $this->file->getSize();
+        return $this->size;
     }
 
     /**
@@ -44,6 +62,10 @@ class File extends AbstractFile
      */
     public function getContent(): StreamInterface
     {
-        return $this->file->getContent();
+        if ($this->content === null) {
+            $this->content = $this->adapter->read($this->path);
+        }
+
+        return $this->content;
     }
 }

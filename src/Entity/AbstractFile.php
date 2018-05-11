@@ -69,7 +69,7 @@ abstract class AbstractFile implements \JsonSerializable
     /**
      * @var Directory|null
      *
-     * @ORM\ManyToOne(targetEntity="App\Entity\Directory", inversedBy="childes", cascade={ "persist" })
+     * @ORM\ManyToOne(targetEntity="App\Entity\Directory", inversedBy="childes")
      */
     protected $parent;
 
@@ -109,6 +109,14 @@ abstract class AbstractFile implements \JsonSerializable
         $this->parent = $parent;
 
         $this->createdAt = new \DateTime();
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return $this->publicPath;
     }
 
     /**

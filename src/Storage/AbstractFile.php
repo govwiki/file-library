@@ -2,7 +2,7 @@
 
 namespace App\Storage;
 
-use App\Storage\Adapter\File;
+use App\Storage\Adapter\StorageAdapterInterface;
 use App\Storage\Index\StorageIndexInterface;
 
 /**
@@ -14,9 +14,9 @@ abstract class AbstractFile
 {
 
     /**
-     * @var File\Directory|File\File
+     * @var StorageAdapterInterface
      */
-    protected $file;
+    protected $adapter;
 
     /**
      * @var StorageIndexInterface
@@ -24,17 +24,25 @@ abstract class AbstractFile
     protected $index;
 
     /**
+     * @var string
+     */
+    protected $path;
+
+    /**
      * AbstractFile constructor.
      *
-     * @param File\AbstractFile     $file  A AbstractAdapterFile instance.
-     * @param StorageIndexInterface $index StorageIndexInterface instance.
+     * @param StorageAdapterInterface $adapter A StorageAdapterInterface instance.
+     * @param StorageIndexInterface   $index   A StorageIndexInterface instance.
+     * @param string                  $path    Path to file.
      */
     public function __construct(
-        File\AbstractFile $file,
-        StorageIndexInterface $index
+        StorageAdapterInterface $adapter,
+        StorageIndexInterface $index,
+        string $path
     ) {
-        $this->file = $file;
+        $this->adapter = $adapter;
         $this->index = $index;
+        $this->path = $path;
     }
 
     /**
@@ -44,7 +52,7 @@ abstract class AbstractFile
      */
     public function getName(): string
     {
-        return $this->file->getName();
+        return \basename($this->path);
     }
 
     /**
@@ -54,7 +62,7 @@ abstract class AbstractFile
      */
     public function getPath(): string
     {
-        return $this->file->getPath();
+        return $this->path;
     }
 
     /**
@@ -62,8 +70,8 @@ abstract class AbstractFile
      */
     public function remove()
     {
-        $this->index->remove($this->getPath());
-        $this->file->remove();
+        $this->index->remove($this->path);
+        $this->adapter->remove($this->path);
     }
 
     /**
@@ -73,8 +81,8 @@ abstract class AbstractFile
      */
     public function move(string $path)
     {
-        $this->file->move($path);
-        $this->index->move($this->getPath(), $path);
+        $this->adapter->move($this->path, $path);
+        $this->index->move($this->path, $path);
 
         return $this;
     }

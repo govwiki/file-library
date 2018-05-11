@@ -51,9 +51,13 @@ class Storage
      */
     public function createDirectory(string $path): Directory
     {
+        $this->adapter->createDirectory($path);
+        $this->index->createDirectory($path);
+
         return new Directory(
-            $this->adapter->createDirectory($path),
-            $this->index
+            $this->adapter,
+            $this->index,
+            $path
         );
     }
 
@@ -64,12 +68,17 @@ class Storage
      */
     public function getDirectory(string $path)
     {
-        $directory = $this->adapter->getDirectory($path);
-        if ($directory === null) {
-            return null;
+        if ($path !== '/') {
+            //
+            // Ignore root directory 'cause we don't index it.
+            //
+            $directory = $this->index->getDirectory($path);
+            if ($directory === null) {
+                return null;
+            }
         }
 
-        return new Directory($directory, $this->index);
+        return new Directory($this->adapter, $this->index, $path);
     }
 
     /**
@@ -85,9 +94,15 @@ class Storage
      */
     public function createFile(string $path, StreamInterface $stream): File
     {
+        $this->adapter->createFile($path, $stream);
+        $this->index->createFile($path, $stream->getSize());
+
         return new File(
-            $this->adapter->createFile($path, $stream),
-            $this->index
+            $this->adapter,
+            $this->index,
+            $path,
+            $stream->getSize(),
+            $stream
         );
     }
 
@@ -98,12 +113,12 @@ class Storage
      */
     public function getFile(string $path)
     {
-        $file = $this->adapter->getFile($path);
+        $file = $this->index->getFile($path);
         if ($file === null) {
             return null;
         }
 
-        return new File($file, $this->index);
+        return new File($this->adapter, $this->index, $path, $file->getFileSize());
     }
 
     /**

@@ -2,8 +2,6 @@
 
 namespace App\Storage\Adapter;
 
-use App\Storage\Adapter\File\Directory;
-use App\Storage\Adapter\File\File;
 use Psr\Http\Message\StreamInterface;
 
 /**
@@ -17,35 +15,21 @@ interface StorageAdapterInterface
     /**
      * @param string $path Path to created directory.
      *
-     * @return Directory
+     * @return void
      *
      * @api
      */
-    public function createDirectory(string $path): Directory;
-
-    /**
-     * @param string $path Path to required directory.
-     *
-     * @return Directory|null
-     */
-    public function getDirectory(string $path);
+    public function createDirectory(string $path);
 
     /**
      * @param string          $path    Path where file should be created.
      * @param StreamInterface $content Stored file content.
      *
-     * @return File
+     * @return void
      *
      * @api
      */
-    public function createFile(string $path, StreamInterface $content): File;
-
-    /**
-     * @param string $path Path to required file.
-     *
-     * @return File|null
-     */
-    public function getFile(string $path);
+    public function createFile(string $path, StreamInterface $content);
 
     /**
      * Get list of files for specified path.
@@ -53,7 +37,7 @@ interface StorageAdapterInterface
      * @param string $path
      *
      * @return \Traversable
-     * @psalm-return \Traversable<File\AbstractFile>
+     * @psalm-return \Traversable<AdapterFile>
      *
      * @api
      */
