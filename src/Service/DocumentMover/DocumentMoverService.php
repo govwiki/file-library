@@ -57,7 +57,7 @@ class DocumentMoverService
         }
 
         if ($name === null) {
-            $name = $document->getName();
+            $name = $document->getName() .'.'. $document->getExt();
         }
 
         $year = $this->getYearFromDocumentName($name);
