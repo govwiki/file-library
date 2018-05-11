@@ -70,8 +70,8 @@ abstract class AbstractFile
      */
     public function remove()
     {
-        $this->index->remove($this->path);
         $this->adapter->remove($this->path);
+        $this->index->remove($this->path)->flush();
     }
 
     /**
@@ -82,7 +82,7 @@ abstract class AbstractFile
     public function move(string $path)
     {
         $this->adapter->move($this->path, $path);
-        $this->index->move($this->path, $path);
+        $this->index->move($this->path, $path)->flush();
 
         return $this;
     }

@@ -7,6 +7,8 @@ use MicrosoftAzure\Storage\File\FileRestProxy;
 use Psr\Http\Message\StreamInterface;
 use Slim\Http\Stream;
 
+use function GuzzleHttp\Psr7\stream_for;
+
 /**
  * Class AzureStorageAdapter
  *
@@ -51,8 +53,9 @@ class AzureStorageAdapter implements StorageAdapterInterface
      *
      * @api
      */
-    public function createDirectory(string $path): void
+    public function createDirectory(string $path)
     {
+        $path = self::normalizePath($path);
         $parts = \explode('/', $path);
         $currPath = '';
 
@@ -80,6 +83,8 @@ class AzureStorageAdapter implements StorageAdapterInterface
      */
     public function createFile(string $path, StreamInterface $content)
     {
+        $path = self::normalizePath($path);
+
         $this->createDirectory(\dirname($path));
 
         $this->client->createFileFromContent(
@@ -129,10 +134,26 @@ class AzureStorageAdapter implements StorageAdapterInterface
      */
     public function move(string $srcPath, string $destPath)
     {
+        //
+        // For some reasons copyFile() method don't works ...
+        //
         $srcPath = self::normalizePath($srcPath);
         $destPath = self::normalizePath($destPath);
 
-        $this->client->copyFile($this->share, $destPath, $srcPath);
+        //
+        // We should call stream get contents 'cause otherwise we don't get any
+        // data here.
+        //
+        $stream = $this->client->getFile($this->share, $srcPath)->getContentStream();
+        $stream = stream_for(\stream_get_contents($stream));
+
+        $this->createDirectory(\dirname($destPath));
+        $this->client->createFileFromContent(
+            $this->share,
+            self::normalizePath($destPath),
+            $stream
+        );
+        $this->remove($srcPath);
     }
 
     /**
@@ -174,7 +195,8 @@ class AzureStorageAdapter implements StorageAdapterInterface
         //
         // For some reasons Azure file storage return "The specifed resource name
         // contains invalid characters." error if we try to request directory by
-        // path with "/" character at first place as normal people do ...
+        // path with "/" character as first character (/some/path/to/file) as
+        // normal people do ...
         //
         return \ltrim($path, '/');
     }

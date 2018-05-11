@@ -52,7 +52,7 @@ class Storage
     public function createDirectory(string $path): Directory
     {
         $this->adapter->createDirectory($path);
-        $this->index->createDirectory($path);
+        $this->index->createDirectory($path)->flush();
 
         return new Directory(
             $this->adapter,
@@ -95,7 +95,7 @@ class Storage
     public function createFile(string $path, StreamInterface $stream): File
     {
         $this->adapter->createFile($path, $stream);
-        $this->index->createFile($path, $stream->getSize());
+        $this->index->createFile($path, $stream->getSize())->flush();
 
         return new File(
             $this->adapter,
@@ -129,6 +129,6 @@ class Storage
     public function remove(string $path)
     {
         $this->adapter->remove($path);
-        $this->index->remove($path);
+        $this->index->remove($path)->flush();
     }
 }

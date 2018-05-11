@@ -58,7 +58,7 @@ interface StorageIndexInterface
      * @param string $srcPath  Path from which we should move file.
      * @param string $destPath Path to which we should move.
      *
-     * @return void
+     * @return $this
      *
      * @api
      */
@@ -67,7 +67,7 @@ interface StorageIndexInterface
     /**
      * @param string $path A path to removed file.
      *
-     * @return void
+     * @return $this
      *
      * @api
      */
@@ -76,14 +76,14 @@ interface StorageIndexInterface
     /**
      * Clear whole index.
      *
-     * @return void
+     * @return $this
      */
     public function clearIndex();
 
     /**
      * Flush changes.
      *
-     * @return void
+     * @return $this
      */
     public function flush();
 }

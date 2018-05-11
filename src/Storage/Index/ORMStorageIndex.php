@@ -152,12 +152,12 @@ class ORMStorageIndex implements StorageIndexInterface
      * @param string $srcPath  Path to moved file.
      * @param string $destPath Destination path.
      *
-     * @return void
+     * @return $this
      */
     public function move(string $srcPath, string $destPath)
     {
         if ($srcPath === $destPath) {
-            return;
+            return $this;
         }
 
         /** @var FileRepositoryInterface $repository */
@@ -166,14 +166,16 @@ class ORMStorageIndex implements StorageIndexInterface
 
         if ($file !== null) {
             $this->em->remove($file);
-            $this->createFile($file->getPublicPath(), $file->getFileSize());
+            $this->createFile($destPath, $file->getFileSize());
         }
+
+        return $this;
     }
 
     /**
      * @param string $path A removed indexed file.
      *
-     * @return void
+     * @return $this
      */
     public function remove(string $path)
     {
@@ -188,12 +190,14 @@ class ORMStorageIndex implements StorageIndexInterface
         if (++$this->deferredBucketSize >= self::MAX_DEFERRED_BUCKET_SIZE) {
             $this->flush();
         }
+
+        return $this;
     }
 
     /**
      * Clear whole index.
      *
-     * @return void
+     * @return $this
      */
     public function clearIndex()
     {
@@ -204,18 +208,22 @@ class ORMStorageIndex implements StorageIndexInterface
         $connection->exec('SET FOREIGN_KEY_CHECKS = 0');
         $connection->exec(sprintf('DELETE FROM %s', $metadata->getTableName()));
         $connection->exec('SET FOREIGN_KEY_CHECKS = 1');
+
+        return $this;
     }
 
     /**
      * Flush changes.
      *
-     * @return void
+     * @return $this
      */
     public function flush()
     {
         $this->deferredBucketSize = 0;
         $this->createdDirectories = [];
         $this->em->flush();
+
+        return $this;
     }
 
     /**
