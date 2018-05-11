@@ -72,7 +72,7 @@ class Authenticator implements AuthenticatorInterface
         $username = $this->session->get(self::USERNAME_KEY);
 
         $user = null;
-        if (is_string($username)) {
+        if (\is_string($username)) {
             $user = $this->repository->findByUsername($username);
             if ($user === null) {
                 $this->session->delete(self::USERNAME_KEY);
