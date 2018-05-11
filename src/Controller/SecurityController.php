@@ -125,7 +125,7 @@ class SecurityController extends AbstractController
         $referer = $request->getServerParam('HTTP_REFERER');
 
         if ((\stripos($host, $this->domain) === false) || ($referer === null)) {
-            return $this->router->pathFor('files-root');
+            return '/';
         }
 
         /** @var string $refererPath */
