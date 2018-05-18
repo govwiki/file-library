@@ -3,6 +3,7 @@
 namespace App\Kernel;
 
 use App\Controller\FileController;
+use App\Controller\ProfileController;
 use App\Controller\SecurityController;
 use App\Middleware\AuthorizationCheckMiddleware;
 use Slim\App;
@@ -34,6 +35,8 @@ class Routes
             $app->put('/files/{slug}/rename', FileController::class . ':rename')->setName('file-rename');
             $app->put('/files/{slug}/move', FileController::class . ':move')->setName('file-move');
         })->add(new AuthorizationCheckMiddleware());
+
+        $app->map([ 'GET', 'POST' ], '/profile', ProfileController::class . ':index')->setName('profile');
 
         $app->get('/files/{slug}', FileController::class . ':files')->setName('files');
         $app->get('/files', FileController::class . ':files')->setName('files-root');

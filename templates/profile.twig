@@ -1,0 +1,27 @@
+{% extends 'layout.twig' %}
+
+{% block main %}
+    <div class="form form--profile">
+        <form method="post" action="{{ path_for('profile') }}">
+            {%- for err in error -%}
+                <div class="error">{{ err.message }}</div>
+            {%- endfor -%}
+
+            <div class="form__row">
+                <label for="first_name">First name</label>
+                <input id="first_name" name="first_name" value="{{ user.firstName }}">
+            </div>
+            <div class="form__row">
+                <label for="last_name">Last name</label>
+                <input id="last_name" name="last_name" value="{{ user.lastName }}">
+            </div>
+            <div class="form__row">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" placeholder="Leave empty if don't want to change password">
+            </div>
+            <div class="form__row">
+                <button class="btn">Submit</button>
+            </div>
+        </form>
+    </div>
+{% endblock main %}
