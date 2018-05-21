@@ -3,6 +3,7 @@
 namespace App\Storage\Adapter;
 
 use MicrosoftAzure\Storage\Common\Exceptions\ServiceException;
+use MicrosoftAzure\Storage\Common\SharedAccessSignatureHelper;
 use MicrosoftAzure\Storage\File\FileRestProxy;
 use Psr\Http\Message\StreamInterface;
 use Slim\Http\Stream;
@@ -18,9 +19,19 @@ class AzureStorageAdapter implements StorageAdapterInterface
 {
 
     /**
+     * @var string
+     */
+    private $accountName;
+
+    /**
      * @var FileRestProxy
      */
     private $client;
+
+    /**
+     * @var SharedAccessSignatureHelper
+     */
+    private $sasHelper;
 
     /**
      * @var string
@@ -39,11 +50,13 @@ class AzureStorageAdapter implements StorageAdapterInterface
         string $accountKey,
         string $share
     ) {
+        $this->accountName = $accountName;
         $this->client = FileRestProxy::createFileService(\sprintf(
             'DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;',
             $accountName,
             $accountKey
         ));
+        $this->sasHelper = new SharedAccessSignatureHelper($accountName, $accountKey);
         $this->share = $share;
     }
 
@@ -113,6 +126,38 @@ class AzureStorageAdapter implements StorageAdapterInterface
         } catch (ServiceException $exception) {
             return false;
         }
+    }
+
+
+//https://cafr.file.core.windows.net/cafr/General%20Purpose/2016/AK%20Anchorage%202016.pdf?sv=2017-07-29&ss=bfqt&srt=sco&sp=r&se=2050-01-03T11:16:14Z&st=2018-04-20T02:16:14Z&spr=https,http&sig=XLDSzf2Kip3%2B1fnygVPqshG5lZNcGaZj%2FJpgsDgvMk4%3D
+
+    /**
+     * @param string $path Path to file.
+     *
+     * @return string
+     */
+    public function generatePublicUrl(string $path): string
+    {
+        $startDateTime = new \DateTime();
+
+        $token = $this->sasHelper->generateAccountSharedAccessSignatureToken(
+            '2017-07-29',
+            'r',
+            'f',
+            'sco',
+            (clone $startDateTime)->modify('+ 100 years'),
+            $startDateTime,
+            '',
+            'https'
+        );
+
+        return \sprintf(
+            'https://%s.file.core.windows.net/%s/%s?%s',
+            $this->accountName,
+            $this->share,
+            \ltrim($path, '/'),
+            $token
+        );
     }
 
     /**

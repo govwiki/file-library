@@ -141,4 +141,14 @@ class Storage
     {
         return $this->adapter->isFileExists($path);
     }
+
+    /**
+     * @param string $path Path to file.
+     *
+     * @return string
+     */
+    public function generatePublicUrl(string $path): string
+    {
+        return $this->adapter->generatePublicUrl($path);
+    }
 }

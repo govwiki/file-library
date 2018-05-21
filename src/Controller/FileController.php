@@ -179,7 +179,23 @@ class FileController extends AbstractController
             'draw' => $request->getQueryParam('draw'),
             'recordsTotal' => $count,
             'recordsFiltered' => $count,
-            'data' => iterator_to_array($list),
+            'data' => array_map(function (AbstractFile $file) {
+                if ($file instanceof Document) {
+                    return [
+                        'type' => 'document',
+                        'id' => $file->getId(),
+                        'name' => $file->getName(),
+                        'slug' => $file->getSlug(),
+                        'createdAt' => $file->getCreatedAt()->format('c'),
+                        'parent' => $file->getParent() ? $file->getParent()->getId() : null,
+                        'publicPath' => $file->getPublicPath(),
+                        'downloadUrl' => $this->storage->generatePublicUrl($file->getPublicPath()),
+                        'fileSize' => $file->getFileSize(),
+                    ];
+                }
+                
+                return $file;
+            }, iterator_to_array($list)),
         ]);
     }
 

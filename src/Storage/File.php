@@ -20,9 +20,14 @@ class File extends AbstractFile
     private $size;
 
     /**
-     * @var StreamInterface
+     * @var StreamInterface|null
      */
     private $content;
+
+    /**
+     * @var string|null
+     */
+    private $url;
 
     /**
      * AbstractFile constructor.
@@ -67,5 +72,17 @@ class File extends AbstractFile
         }
 
         return $this->content;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDownloadUrl(): string
+    {
+        if ($this->url === null) {
+            $this->url = $this->adapter->generatePublicUrl($this->path);
+        }
+
+        return $this->url;
     }
 }

@@ -12,12 +12,6 @@
   ];
 
   var CLICK_HANDLERS = {
-    'tbody tr': function (data) {
-      window.location = '/' + data.slug;
-    },
-    '.document--action__download': function(data) {
-      window.location = '/' + data.slug;
-    },
     '.document--action__move': function (data) {
       moveModal.$('#move-form').attr('action', '/files/' + data.slug + '/move');
       moveModal.setTitle('Move "'+ data.name +'"').show();
@@ -73,26 +67,27 @@
     var ACTIONS = [
       {
         'class': 'document-action document--action__download',
-        'icon': 'fa-download',
-        'title': 'Download'
+        icon: 'fa-download',
+        title: 'Download',
+        href: function (data) { return data.downloadUrl; }
       }
     ];
 
     if (documents.showActions) {
       ACTIONS.push({
         'class': 'document-action document--action__move',
-        'icon': 'fa-folder-open',
-        'title': 'Move'
+        icon: 'fa-folder-open',
+        title: 'Move'
       });
       ACTIONS.push({
         'class': 'document-action document--action__rename',
-        'icon': 'fa-edit',
-        'title': 'Rename'
+        icon: 'fa-edit',
+        title: 'Rename'
       });
       ACTIONS.push({
         'class': 'document-action document--action__remove',
-        'icon': 'fa-trash',
-        'title': 'Remove'
+        icon: 'fa-trash',
+        title: 'Remove'
       });
     }
 
@@ -104,7 +99,12 @@
         }
 
         return $.map(ACTIONS, function (action) {
-          return '<a class="'+ action.class +'" href="#"><i class="fa '+ action.icon +'"></i> '+ action.title +'</a>'
+          var href = '#';
+          if (action.hasOwnProperty('href') && action.href) {
+            href = action.href(data);
+          }
+
+          return '<a class="'+ action.class +'" href="'+ href +'"><i class="fa '+ action.icon +'"></i> '+ action.title +'</a>'
         }).join('');
       },
       className: 'document--field__actions',

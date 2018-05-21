@@ -41,6 +41,13 @@ interface StorageAdapterInterface
     public function isFileExists(string $path): bool;
 
     /**
+     * @param string $path Path to file.
+     *
+     * @return string
+     */
+    public function generatePublicUrl(string $path): string;
+
+    /**
      * Get list of files for specified path.
      *
      * @param string $path
