@@ -12,6 +12,12 @@
   ];
 
   var CLICK_HANDLERS = {
+    'tbody tr': function (data) {
+      window.location = '/' + data.slug;
+    },
+    '.document--action__download': function(data) {
+      window.location = data.downloadUrl;
+    },
     '.document--action__move': function (data) {
       moveModal.$('#move-form').attr('action', '/files/' + data.slug + '/move');
       moveModal.setTitle('Move "'+ data.name +'"').show();
