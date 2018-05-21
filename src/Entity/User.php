@@ -155,7 +155,7 @@ class User implements \Serializable, \JsonSerializable
     public function setFirstName(string $firstName): User
     {
         /** @psalm-suppress MixedMethodCall */
-        Assert::that($firstName)->notBlank()->maxLength(255);
+        Assert::that($firstName)->maxLength(255);
         $this->firstName = $firstName;
 
         return $this;
@@ -177,7 +177,7 @@ class User implements \Serializable, \JsonSerializable
     public function setLastName(string $lastName): User
     {
         /** @psalm-suppress MixedMethodCall */
-        Assert::that($lastName)->notBlank()->maxLength(255);
+        Assert::that($lastName)->maxLength(255);
         $this->lastName = $lastName;
 
         return $this;

@@ -24,15 +24,15 @@ class UserFixture extends AbstractFixture implements OrderedFixtureInterface
      */
     public function load(ObjectManager $manager)
     {
-        $user = new User('user1', 'user1', 'John', 'Smith');
+        $user = new User('user1', password_hash('user1', \PASSWORD_BCRYPT), 'John', 'Smith');
         $this->addReference('user1', $user);
         $manager->persist($user);
 
-        $user = new User('user2', 'user2', 'Jane', 'Smith');
+        $user = new User('user2', password_hash('user2', \PASSWORD_BCRYPT), 'Jane', 'Smith');
         $this->addReference('user2', $user);
         $manager->persist($user);
 
-        $user = new User('user3', 'user3', 'John', 'Due');
+        $user = new User('user3', password_hash('user3', \PASSWORD_BCRYPT), 'John', 'Due');
         $this->addReference('user3', $user);
         $manager->persist($user);
 

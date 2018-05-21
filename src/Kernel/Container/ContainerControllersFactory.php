@@ -4,8 +4,10 @@ namespace App\Kernel\Container;
 
 use App\Controller\ErrorHandler;
 use App\Controller\FileController;
+use App\Controller\ProfileController;
 use App\Controller\SecurityController;
 use App\Repository\FileRepositoryInterface;
+use App\Repository\UserRepositoryInterface;
 use App\Service\Authenticator\AuthenticatorInterface;
 use App\Service\DocumentMover\DocumentMoverService;
 use App\Storage\Storage;
@@ -50,6 +52,17 @@ class ContainerControllersFactory
             $storage = $container->get(Storage::class);
 
             return new DocumentMoverService($storage);
+        };
+
+        $container[ProfileController::class] = function (ContainerInterface $container): ProfileController {
+            /** @var Twig $view */
+            $view = $container->get('view');
+            /** @var RouterInterface $router */
+            $router = $container->get('router');
+            /** @var UserRepositoryInterface $repository */
+            $repository = $container->get(UserRepositoryInterface::class);
+
+            return new ProfileController($view, $router, $repository);
         };
 
         /**

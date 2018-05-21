@@ -96,6 +96,7 @@ class FileController extends AbstractController
                     'currentDir' => $file,
                     'userJson' => json_encode($request->getAttribute('user')),
                     'topLevelDirNames' => $topLevelDirNames,
+                    'defaultOrder' => ($file !== null) && ($file->getParent() === null) ? 'desc' : 'asc',
                 ]);
 
             case $file instanceof Document:

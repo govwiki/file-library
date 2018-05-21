@@ -84,7 +84,8 @@
     <script>
       window.documents = {
         showActions: {{ user is defined ? 'true' : 'false' }},
-        user: JSON.parse('{{ userJson|e('js') }}')
+        user: JSON.parse('{{ userJson|e('js') }}'),
+        defaultOrder: '{{ defaultOrder }}'
       };
     </script>
     <script src="/documents.js"></script>

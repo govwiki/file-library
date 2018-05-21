@@ -23,7 +23,8 @@ h2 {
 
 header,
 main,
-.login-form {
+footer,
+.form--login {
 	box-shadow: 0 5px 10px -5px rgba(0,0,0,0.5);
 	position: relative;
 	background: white; 
@@ -32,6 +33,14 @@ main,
 main {
 	padding: 10px 0 10px 0;
 	margin-top: 10px;
+}
+
+footer {
+	margin-top: 10px;
+	padding: 10px;
+	text-align: center;
+	font-weight: bold;
+	color: #888888;
 }
 
 table {
@@ -130,22 +139,22 @@ table tr.dir td:first-of-type a {
 	right: 20px;
 }
 
-.login-form {
+.form {
 	width: 25%;
 	margin: 20px auto;
 	text-align: center;
 	padding: 10px 0;
 }
 
-.login-form input {
+.form input {
 	padding: 2px 4px;
 }
 
-.login-form label {
+.form label {
 	font-weight: bold;
 }
 
-.login-form__row {
+.form__row {
 	margin-bottom: 10px;
 }
 

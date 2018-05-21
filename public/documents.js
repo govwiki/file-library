@@ -113,6 +113,8 @@
 
     var $table = $('#documents-table');
     dtTable = $table.DataTable({
+      order: [[ 0, window.documents.defaultOrder ]],
+      pageLength: 100,
       lengthMenu: [
         [ 10, 25, 50, 100, -1 ],
         [ 10, 25, 50, 100, 'All']
