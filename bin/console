@@ -33,6 +33,9 @@ $console->setHelperSet(new \Symfony\Component\Console\Helper\HelperSet([
 ]));
 
 $console->addCommands([
+    new \App\Command\DocumentsSyncCommand(
+        $container->get(\App\Storage\Storage::class)
+    ),
     new \App\Command\IndexCommand(
         $container->get(\App\Storage\Adapter\StorageAdapterInterface::class),
         $container->get(\App\Storage\Index\StorageIndexInterface::class)

@@ -46,6 +46,7 @@ class AzureStorageAdapter implements StorageAdapterInterface
         ));
         $this->share = $share;
     }
+
     /**
      * @param string $path Path to created directory.
      *
@@ -92,6 +93,26 @@ class AzureStorageAdapter implements StorageAdapterInterface
             $path,
             $content
         );
+    }
+
+    /**
+     * @param string $path Path to checked file.
+     *
+     * @return boolean
+     *
+     * @api
+     */
+    public function isFileExists(string $path): bool
+    {
+        $path = self::normalizePath($path);
+
+        try {
+            $this->client->getFileMetadata($this->share, $path);
+
+            return true;
+        } catch (ServiceException $exception) {
+            return false;
+        }
     }
 
     /**
@@ -195,8 +216,8 @@ class AzureStorageAdapter implements StorageAdapterInterface
         //
         // For some reasons Azure file storage return "The specifed resource name
         // contains invalid characters." error if we try to request directory by
-        // path with "/" character as first character (/some/path/to/file) as
-        // normal people do ...
+        // path with "/"  as first character (like /some/path/to/file) as normal
+        // people do ...
         //
         return \ltrim($path, '/');
     }

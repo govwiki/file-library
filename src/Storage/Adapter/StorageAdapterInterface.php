@@ -32,6 +32,15 @@ interface StorageAdapterInterface
     public function createFile(string $path, StreamInterface $content);
 
     /**
+     * @param string $path Path to checked file.
+     *
+     * @return boolean
+     *
+     * @api
+     */
+    public function isFileExists(string $path): bool;
+
+    /**
      * Get list of files for specified path.
      *
      * @param string $path

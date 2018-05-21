@@ -74,7 +74,7 @@ class User implements \Serializable, \JsonSerializable
             ->that($password, 'password')->minLength(6)->maxLength(255)
             ->that($firstName, 'firstName')->notBlank()->maxLength(255)
             ->that($lastName, 'lastName')->notBlank()->maxLength(255)
-            ->tryAll();
+            ->verifyNow();
 
         $this->username = $username;
         $this->password = $password;

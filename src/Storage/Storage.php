@@ -131,4 +131,14 @@ class Storage
         $this->adapter->remove($path);
         $this->index->remove($path)->flush();
     }
+
+    /**
+     * @param string $path Path to checked file.
+     *
+     * @return boolean
+     */
+    public function isFileExists(string $path): bool
+    {
+        return $this->adapter->isFileExists($path);
+    }
 }
