@@ -30,6 +30,7 @@
         "doctrine/orm": "^2.5",
         "fzaninotto/faker": "^1.7",
         "microsoft/azure-storage-file": "^1.1",
+        "sabre/dav": "^3.2",
         "slim/slim": "^3.9",
         "slim/twig-view": "^2.3",
         "sllh/composer-versions-check": "^2.0",

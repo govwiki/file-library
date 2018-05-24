@@ -236,13 +236,20 @@ class ORMStorageIndex implements StorageIndexInterface
         $parts = \explode('/', $path);
         \array_shift($parts);
 
-        $directory = $this->entityFactory->createDirectoryByPath($parts);
-        $this->em->persist($directory);
+        $tmp = $directory = $this->entityFactory->createDirectoryByPath($parts);
+        $dirs = [];
+
+        do {
+            $this->em->persist($tmp);
+            $dirs[] = $tmp;
+
+            $tmp = $tmp->getParent();
+        } while ($tmp !== null);
 
         //
         // All directories should be flushed immediately.
         //
-        $this->em->flush($directory);
+        $this->em->flush($dirs);
 
         return $directory;
     }

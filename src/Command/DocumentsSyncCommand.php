@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Storage\Storage;
+use Doctrine\DBAL\Connection;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -29,15 +30,22 @@ class DocumentsSyncCommand extends Command
     private $storage;
 
     /**
+     * @var Connection
+     */
+    private $connection;
+
+    /**
      * SyncDocumentsCommand constructor.
      *
-     * @param Storage $storage A Storage instance.
+     * @param Storage    $storage    A Storage instance.
+     * @param Connection $connection A DBAL Connection instance.
      */
-    public function __construct(Storage $storage)
+    public function __construct(Storage $storage, Connection $connection)
     {
         parent::__construct(self::NAME);
 
         $this->storage = $storage;
+        $this->connection = $connection;
     }
 
     /**
@@ -48,11 +56,10 @@ class DocumentsSyncCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('Move documents from ftp to azure storage.')
-            ->addArgument('host', InputArgument::REQUIRED, 'FTP host from which we get documents')
-            ->addArgument('directories', InputArgument::REQUIRED, 'Comma separated list of directories names which is used for sync')
+            ->setDescription('Move documents from WebDav to azure storage.')
+            ->addArgument('url', InputArgument::REQUIRED, 'WebDav connection url from which we get documents')
+            ->addArgument('directory', InputArgument::REQUIRED, 'Path to synced directory')
             ->addOption('concurrency', 'c', InputOption::VALUE_REQUIRED, 'Concurrency connection count', 4)
-            ->addOption('port', 'x', InputOption::VALUE_REQUIRED, 'FTP server port', 21)
             ->addOption('user', 'u', InputOption::VALUE_REQUIRED, 'Username which is used for authentication')
             ->addOption('password', 'p', InputOption::VALUE_REQUIRED, 'Password which is used for authentication')
             ->addOption('transform', 't', InputOption::VALUE_NONE, 'Transform documents or not');
@@ -75,20 +82,24 @@ class DocumentsSyncCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        //
+        // Because we get a very huge list response for some directories and we
+        // may exceed allowed memory limit very fast.
+        //
+        \ini_set('memory_limit', '1G');
+
         $concurrency = (int) $input->getOption('concurrency');
         $transform = $input->getOption('transform');
 
-        $host = $input->getArgument('host');
-        $port = (int) $input->getOption('port');
-        $requestedDirectories = \array_map('trim', \explode(',', $input->getArgument('directories')));
+        $url = $input->getArgument('url');
+        $directory = $input->getArgument('directory');
 
         $user = $input->getOption('user');
         $password = $input->getOption('password');
 
         $output->write(\sprintf(
-            '<info>Start fetching documents from %s:%s to azure file storage </info>',
-            $host,
-            $port
+            '<info>Start fetching documents from "%s" to azure file storage </info>',
+            \rtrim($url, '/') . '/' . \ltrim($directory, '/')
         ));
         if ($transform) {
             $output->writeln('<info><options=bold>with</> transformation</info>');
@@ -103,6 +114,11 @@ class DocumentsSyncCommand extends Command
 
         $output->writeln(\sprintf('Spawn %d childs', $concurrency));
 
+        //
+        // We assume that directory in WebDav as equal to Azure File Storage.
+        //
+        $destDir = \basename($directory);
+
         for ($i = 0; $i < $concurrency; ++$i) {
             $pid = \pcntl_fork();
             switch ($pid) {
@@ -113,19 +129,20 @@ class DocumentsSyncCommand extends Command
                 case 0:
                     $output->writeln(\sprintf('<info>[CHILD %d] Ready</info>', \posix_getpid()));
 
-                    try {
-                        $connection = new FTPConnection($host, $user, $password, $port);
-                    } catch (\LogicException $exception) {
-                        $output->writeln(\sprintf(
-                            '<error>[CHILD %s] Can\'t connect to FTP server: %s</error>',
-                            \posix_getpid(),
-                            $exception->getMessage()
-                        ));
+                    $conn = new WebDavConnection(
+                        $url,
+                        $directory,
+                        $user,
+                        $password
+                    );
 
-                        return 1;
-                    }
+                    //
+                    // Reconnect to database in each child.
+                    //
+                    $this->connection->close();
+                    $this->connection->connect();
 
-                    $this->childProcess($connection, $output, $this->createTransformer($transform));
+                    $this->childProcess($conn, $output, $this->createTransformer($destDir, $transform));
 
                     break;
 
@@ -141,18 +158,14 @@ class DocumentsSyncCommand extends Command
         // it into queue.
         //
 
-        try {
-            $connection = new FTPConnection($host, $user, $password, $port);
-        } catch (\LogicException $exception) {
-            $output->writeln(\sprintf(
-                '<error>[MAIN] Can\'t connect to FTP server: %s</error>',
-                $exception->getMessage()
-            ));
+        $conn = new WebDavConnection(
+            $url,
+            $directory,
+            $user,
+            $password
+        );
 
-            return 1;
-        }
-
-        $this->masterProcess($output, $connection, $requestedDirectories);
+        $this->masterProcess($conn, ! $transform);
 
         $output->writeln('<info>[MAIN] Kill child process</info>');
         foreach ($childs as $child) {
@@ -166,24 +179,25 @@ class DocumentsSyncCommand extends Command
     }
 
     /**
+     * @param string  $destDir   Destination dir name.
      * @param boolean $transform Should path make additional transformation.
      *
      * @return \Closure
      */
-    private function createTransformer(bool $transform): \Closure
+    private function createTransformer(string $destDir, bool $transform): \Closure
     {
-        $transformer = function ($directory, $document) {
-            return $directory .'/'. $document;
+        $transformer = function ($documentName) use ($destDir) {
+            return '/'. \trim($destDir, '/') .'/'. $documentName;
         };
 
         if ($transform) {
-            $transformer = function ($directory, $document) {
+            $transformer = function ($documentName) use ($destDir) {
                 $matches = [];
-                if ((preg_match(self::FILENAME_PATTERN, $document, $matches) !== 1) || ! isset($matches['year'])) {
+                if ((\preg_match(self::FILENAME_PATTERN, $documentName, $matches) !== 1) || ! isset($matches['year'])) {
                     throw new \DomainException('Can\'t determine destination path');
                 }
 
-                return $directory . '/' . $matches['year'] . '/' . $document;
+                return '/'. \trim($destDir, '/') .'/'. $matches['year'] . '/' . $documentName;
             };
         }
 
@@ -191,34 +205,30 @@ class DocumentsSyncCommand extends Command
     }
 
     /**
-     * @param FTPConnection   $connection      A FTPConnection instance.
-     * @param OutputInterface $output          A OutputInterface instance.
-     * @param callable        $pathTransformer Path transformer.
+     * @param WebDavConnection $connection      A WebDavConnection instance.
+     * @param OutputInterface  $output          A OutputInterface instance.
+     * @param callable         $pathTransformer Path transformer.
      *
      * @return void
      */
     private function childProcess(
-        FTPConnection $connection,
+        WebDavConnection $connection,
         OutputInterface $output,
         callable $pathTransformer
     ) {
         $queue = \msg_get_queue(self::QUEUE_KEY);
         $errors = [];
         $msgtype = null;
-        $data = null;
+        $srcPath = null;
         $err = null;
         $pid = \posix_getpid();
 
         while (true) {
             try {
-                \msg_receive($queue, 12, $msgtype, 10000, $data, true, 0, $err);
-
-                list ($directory, $document) = $data;
-
-                $srcPath = $directory . '/' . $document;
+                \msg_receive($queue, 12, $msgtype, 10000, $srcPath, true, 0, $err);
 
                 try {
-                    $destPath = $pathTransformer($directory, $document);
+                    $destPath = $pathTransformer($srcPath);
                 } catch (\DomainException $exception) {
                     $output->writeln(
                         \sprintf(
@@ -280,40 +290,22 @@ class DocumentsSyncCommand extends Command
     }
 
     /**
-     * @param OutputInterface $output               A OutputInterface instance.
-     * @param FTPConnection   $connection           A FTPConnection instance.
-     * @param string[]        $requestedDirectories Array of requested directories
-     *                                              names.
+     * @param WebDavConnection $connection A FTPConnection instance.
+     * @param boolean          $processAll Process only matched files if false.
      *
      * @return void
      */
     public function masterProcess(
-        OutputInterface $output,
-        FTPConnection $connection,
-        array $requestedDirectories
+        WebDavConnection $connection,
+        bool $processAll = false
     ) {
-        $existsDirectories = $connection->listFiles('.');
-        if (\is_bool($existsDirectories)) {
-            $output->writeln('<error>[MAIN] Can\'t get list of available directories</error>');
-
-            return;
-        }
-
-        $processedDirectories = \array_intersect($requestedDirectories, $existsDirectories);
         $queue = \msg_get_queue(self::QUEUE_KEY);
 
-        foreach ($processedDirectories as $directory) {
-            $documents = $connection->listFiles('./'. $directory);
-            $output->writeln(\sprintf(
-                '[MAIN] Process directory %s (~ %d files)',
-                $directory,
-                count($documents)
-            ));
+        $documents = $connection->listFiles('/');
 
-            foreach ($documents as $document) {
-                if (\preg_match(self::DOCUMENT_PATTERN, $document)) {
-                    \msg_send($queue, 12, [ $directory, $document ]);
-                }
+        foreach ($documents as $documentName) {
+            if ($processAll || \preg_match(self::DOCUMENT_PATTERN, $documentName)) {
+                \msg_send($queue, 12, \ltrim($documentName, '/'));
             }
         }
 
