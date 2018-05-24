@@ -304,8 +304,9 @@ class DocumentsSyncCommand extends Command
         $documents = $connection->listFiles('/');
 
         foreach ($documents as $documentName) {
-            if ($processAll || \preg_match(self::DOCUMENT_PATTERN, $documentName)) {
-                \msg_send($queue, 12, \ltrim($documentName, '/'));
+            $documentName = \ltrim($documentName, '/');
+            if (($documentName !== '') && ($processAll || \preg_match(self::DOCUMENT_PATTERN, $documentName))) {
+                \msg_send($queue, 12, $documentName);
             }
         }
 
