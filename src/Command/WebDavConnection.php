@@ -69,7 +69,7 @@ class WebDavConnection
         //
         // We got 404 if we don't do it.
         //
-        $absPath = \str_replace(' ', '%20', $this->client->getAbsoluteUrl($this->buildPath($path)));
+        $absPath = $this->client->getAbsoluteUrl($this->buildPath($path));
         $response = $this->client->send(new Request('GET', $absPath));
 
         return new Stream($response->getBodyAsStream());
@@ -112,6 +112,6 @@ class WebDavConnection
      */
     private function buildPath(string $relativePath): string
     {
-        return $this->basePath .'/' . \trim($relativePath, '/');
+        return \str_replace(' ', '%20', $this->basePath .'/' . \trim($relativePath, '/'));
     }
 }
