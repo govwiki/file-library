@@ -5,6 +5,7 @@ namespace App\Storage\Adapter;
 use MicrosoftAzure\Storage\Common\Exceptions\ServiceException;
 use MicrosoftAzure\Storage\Common\SharedAccessSignatureHelper;
 use MicrosoftAzure\Storage\File\FileRestProxy;
+use MicrosoftAzure\Storage\File\Models\ListDirectoriesAndFilesOptions;
 use Psr\Http\Message\StreamInterface;
 use Slim\Http\Stream;
 
@@ -172,22 +173,34 @@ class AzureStorageAdapter implements StorageAdapterInterface
      */
     public function listFiles(string $path): \Traversable
     {
-        $result = $this->client->listDirectoriesAndFiles($this->share, self::normalizePath($path));
+        $options = new ListDirectoriesAndFilesOptions();
+        $options->setMaxResults(1000);
 
-        $path = $path === '/' ? '' : $path;
-
-        foreach ($result->getDirectories() as $directory) {
-            yield AdapterFile::createDirectory(
-                $path .'/'. $directory->getName()
+        do {
+            $result = $this->client->listDirectoriesAndFiles(
+                $this->share,
+                self::normalizePath($path),
+                $options
             );
-        }
 
-        foreach ($result->getFiles() as $file) {
-            yield AdapterFile::createFile(
-                $path .'/'. $file->getName(),
-                $file->getLength()
-            );
-        }
+            $path = $path === '/' ? '' : $path;
+
+            foreach ($result->getDirectories() as $directory) {
+                yield AdapterFile::createDirectory(
+                    $path .'/'. $directory->getName()
+                );
+            }
+
+            foreach ($result->getFiles() as $file) {
+                yield AdapterFile::createFile(
+                    $path .'/'. $file->getName(),
+                    $file->getLength()
+                );
+            }
+
+            $marker = $result->getNextMarker();
+            $options->setMarker($marker);
+        } while ($marker);
     }
 
     /**

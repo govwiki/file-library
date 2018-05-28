@@ -76,7 +76,7 @@ class IndexCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $output->write('> Clear and storage index: ');
+        $output->write('> Clear storage index: ');
         $this->index->clearIndex();
         $output->writeln('[ <info>OK</info> ]');
 
