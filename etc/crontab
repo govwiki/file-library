@@ -1,0 +1,3 @@
+CONSOLE={absolute path to ./bin/console}
+
+* */2 * * * $CONSOLE document:index:update

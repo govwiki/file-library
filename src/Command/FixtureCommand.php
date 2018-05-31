@@ -32,7 +32,7 @@ class FixtureCommand extends Command
     private $fixturesPath;
 
     /**
-     * IndexCommand constructor.
+     * FixtureCommand constructor.
      *
      * @param EntityManagerInterface $em           A EntityManagerInterface
      *                                             instance.

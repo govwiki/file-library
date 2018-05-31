@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\AbstractFile;
 use App\Entity\Directory;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\QueryBuilder;
 
 /**
  * Interface FileRepository

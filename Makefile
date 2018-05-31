@@ -29,25 +29,25 @@ endif
 # Start application in docker containers. Development environment.
 #
 start:
-	sudo $(DOCKER_COMPOSE) $(DOCKER_COMPOSE_DEV_FLAGS) up --build
+	$(DOCKER_COMPOSE) $(DOCKER_COMPOSE_DEV_FLAGS) up --build
 
 #
 # Open mysql cli to database in container.
 #
 db-cli:
-	sudo $(DOCKER_COMPOSE) $(DOCKER_COMPOSE_DEV_FLAGS) exec db mysql -u $(DB_USER) -p$(DB_PASSWORD) $(DB_NAME)
+	$(DOCKER_COMPOSE) $(DOCKER_COMPOSE_DEV_FLAGS) exec db mysql -u $(DB_USER) -p$(DB_PASSWORD) $(DB_NAME)
 
 #
 # Open shell to application server.
 #
 app-cli:
-	sudo $(DOCKER_COMPOSE) $(DOCKER_COMPOSE_DEV_FLAGS) exec php-fpm /bin/ash -l
+	$(DOCKER_COMPOSE) $(DOCKER_COMPOSE_DEV_FLAGS) exec php-fpm /bin/ash -l
 
 #
 # Open shell to node dev server.
 #
 node-cli:
-	sudo $(DOCKER_COMPOSE) $(DOCKER_COMPOSE_DEV_FLAGS) exec node /bin/ash -l
+	$(DOCKER_COMPOSE) $(DOCKER_COMPOSE_DEV_FLAGS) exec node /bin/ash -l
 
 node-restart:
-	sudo $(DOCKER_COMPOSE) $(DOCKER_COMPOSE_DEV_FLAGS) restart node
+	$(DOCKER_COMPOSE) $(DOCKER_COMPOSE_DEV_FLAGS) restart node
