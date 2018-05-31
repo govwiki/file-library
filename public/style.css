@@ -78,6 +78,21 @@ th a {
 	padding-left: 0
 }
 
+header h1 {
+	margin: 0 250px;
+}
+
+.logo {
+	display: block;
+	position: absolute;
+	top: 10px;
+	left: 10px;
+}
+
+.logo img {
+	height: 40px;
+}
+
 table.dataTable thead th.sorting,
 table.dataTable thead th.sorting_asc,
 table.dataTable thead th.sorting_desc {
@@ -298,19 +313,45 @@ a:hover {
 	box-sizing:border-box
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1438px) {
 	.menu {
-		float: none;
-		top: 0;
-		right: 0;
-		text-align: center;
-		padding: 10px;
+		top: -80px;
 	}
 }
 
 @media (max-width: 1280px) {
 	.login-form {
 		width: 70%;
+	}
+}
+
+@media (max-width: 1032px) {
+	.menu {
+		top: -110px;
+	}
+}
+
+@media (max-width: 940px) {
+	.menu {
+		top: -140px;
+	}
+}
+
+@media (max-width: 830px) {
+	.logo {
+		float: none;
+		position: static;
+		text-align: center;
+	}
+
+	.title {
+		margin: 0;
+	}
+
+	.menu {
+		float: none;
+		position: static;
+		text-align: center;
 	}
 }
 

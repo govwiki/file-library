@@ -14,7 +14,12 @@
 
 <body>
     <header>
-        <h1>CAFRS and Single Audits for US Governments and Non-Profits</h1>
+        <div class="logo">
+            <a href="http://municipalfinance.org/">
+                <img src="/logo.png">
+            </a>
+        </div>
+        <h1 class="title">CAFRS and Single Audits for US Governments and Non-Profits</h1>
         <div class="menu">
             {%- if user is defined -%}
                 <div>Hello, {{ user.fullName -}}</div>
@@ -24,6 +29,7 @@
                 <a href="{{ path_for('login') }}">Login</a>
             {%- endif -%}
         </div>
+
     </header>
     <main>
         {%- if block('breadcrumb') is defined -%}
@@ -33,7 +39,7 @@
     </main>
 
     <footer>
-        Provided as a public service by the Center for Municipal Finance with generous support from Microsoft Philanthropies
+        Provided as a public service by the Center for Municipal Finance with generous support from Microsoft
     </footer>
 
     {%- block javascripts %}
