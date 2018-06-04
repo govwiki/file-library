@@ -8,7 +8,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Filesystem\LockHandler;
+use Symfony\Component\Lock\Factory;
+use Symfony\Component\Lock\Store\SemaphoreStore;
 
 /**
  * Class AbstractParallelCommand
@@ -47,11 +48,13 @@ abstract class AbstractParallelCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $lock = new LockHandler($this->getName());
-            if (! $lock->lock()) {
+            $store = new SemaphoreStore();
+            $factory = new Factory($store);
+            $lock = $factory->createLock($this->getName());
+            if (! $lock->acquire()) {
                 $output->writeln('Command already run.');
 
-                return 0;
+                exit(0);
             }
 
             $concurrency = $input->getOption('concurrency');
