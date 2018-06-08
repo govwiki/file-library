@@ -72,8 +72,6 @@ class ProfileController extends AbstractController
             /** @var array{username: string, password: string} $params */
             $params = $request->getParsedBody();
 
-            \var_dump($params);
-
             try {
                 Assert::lazy()
                     ->that($params, '')
