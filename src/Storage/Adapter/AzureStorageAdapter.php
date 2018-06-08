@@ -129,9 +129,6 @@ class AzureStorageAdapter implements StorageAdapterInterface
         }
     }
 
-
-//https://cafr.file.core.windows.net/cafr/General%20Purpose/2016/AK%20Anchorage%202016.pdf?sv=2017-07-29&ss=bfqt&srt=sco&sp=r&se=2050-01-03T11:16:14Z&st=2018-04-20T02:16:14Z&spr=https,http&sig=XLDSzf2Kip3%2B1fnygVPqshG5lZNcGaZj%2FJpgsDgvMk4%3D
-
     /**
      * @param string $path Path to file.
      *
@@ -246,7 +243,14 @@ class AzureStorageAdapter implements StorageAdapterInterface
     {
         $path = self::normalizePath($path);
 
-        $this->client->deleteFile($this->share, $path);
+        try {
+            $this->client->deleteFile($this->share, $path);
+        } catch (ServiceException $exception) {
+            // If the file is not found, we should not care.
+            if ($exception->getCode() !== 404) {
+                throw $exception;
+            }
+        }
     }
 
     /**
