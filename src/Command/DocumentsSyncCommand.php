@@ -242,7 +242,7 @@ class DocumentsSyncCommand extends Command
                     continue;
                 }
 
-                if ($this->storage->isFileExists($destPath)) {
+                if ($this->storage->getAdapter()->isFileExists($destPath)) {
                     $output->writeln(
                         \sprintf(
                             '[CHILD %s] File "%s" is already exists, skip',

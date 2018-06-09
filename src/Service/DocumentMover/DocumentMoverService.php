@@ -62,7 +62,12 @@ class DocumentMoverService
 
         $year = $this->getYearFromDocumentName($name);
 
-        $file->move($path .'/'. $year .'/'. $name);
+        $filePath = $path .'/'. $year .'/'. $name;
+        if ($this->storage->isFileExists($filePath)) {
+            throw new DocumentMoverException(\sprintf('File "%s" is already exists', $filePath));
+        }
+
+        $file->move($filePath);
     }
 
     /**

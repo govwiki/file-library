@@ -29,9 +29,11 @@ class ApiExceptionMiddleware
             return $next($request, $response);
         } catch (ApiHttpException $exception) {
             return $response->withJson([
-                'title' => $exception->getTitle(),
-                'code' => $exception->getErrorCode(),
-                'description' => $exception->getDescription(),
+                'error' => [
+                    'title' => $exception->getTitle(),
+                    'code' => $exception->getErrorCode(),
+                    'description' => $exception->getDescription(),
+                ],
             ], $exception->getStatus());
         }
     }

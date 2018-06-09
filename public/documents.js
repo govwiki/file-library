@@ -34,7 +34,7 @@
           method: 'DELETE'
         })
           .then(function () { dtTable.draw() })
-          .fail(function (xhr) { console.log(xhr); alert(JSON.parse(xhr.responseText).error.description) });
+          .fail(function (xhr) { alert(JSON.parse(xhr.responseText).error.description) });
       }
     }
   };

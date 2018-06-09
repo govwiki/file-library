@@ -133,13 +133,29 @@ class Storage
     }
 
     /**
+     * @return StorageIndexInterface
+     */
+    public function getIndex(): StorageIndexInterface
+    {
+        return $this->index;
+    }
+
+    /**
+     * @return StorageAdapterInterface
+     */
+    public function getAdapter(): StorageAdapterInterface
+    {
+        return $this->adapter;
+    }
+
+    /**
      * @param string $path Path to checked file.
      *
      * @return boolean
      */
     public function isFileExists(string $path): bool
     {
-        return $this->adapter->isFileExists($path);
+        return ($this->index->getFile($path) !== null) && $this->adapter->isFileExists($path);
     }
 
     /**
