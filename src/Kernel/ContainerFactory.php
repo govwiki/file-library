@@ -4,6 +4,7 @@ namespace App\Kernel;
 
 use App\Kernel\Container\ContainerControllersFactory;
 use App\Kernel\Container\ContainerServicesFactory;
+use Monolog\Logger;
 use Psr\Container\ContainerInterface;
 use Slim\Container;
 
@@ -70,6 +71,11 @@ class ContainerFactory
                     'name' => 'session',
                     'lifetime' => '24 hour',
                     'autorefresh' => true,
+                ],
+                'logger' => [
+                    'path' => $path .'/var/log/log',
+                    'max_files' => 3,
+                    'level' => $debug ? Logger::DEBUG : Logger::WARNING,
                 ],
             ],
         ]);

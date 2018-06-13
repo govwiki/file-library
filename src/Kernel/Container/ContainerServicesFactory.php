@@ -20,7 +20,10 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\Tools\Setup;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Logger;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
 use Slim\Views\TwigExtension;
 use SlimSession\Helper;
@@ -58,6 +61,27 @@ class ContainerServicesFactory
          */
         $container['session'] = function (): Helper {
             return new Helper();
+        };
+
+        /**
+         * @param ContainerInterface $container A ContainerInterface instance
+         *
+         * @return LoggerInterface
+         */
+        $container['logger'] = function (ContainerInterface $container): LoggerInterface {
+            /** @var array{path: string, max_files: int, level: int} $settings */
+            $settings = self::getSettings($container, 'logger', [
+                'path',
+                'max_files',
+                'level',
+            ]);
+
+            return (new Logger('log'))
+                ->pushHandler(new RotatingFileHandler(
+                    $settings['path'],
+                    $settings['max_files'],
+                    $settings['level']
+                ));
         };
 
         /**

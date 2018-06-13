@@ -4,8 +4,10 @@ namespace App\Kernel;
 
 use App\Middleware\ApiExceptionMiddleware;
 use App\Middleware\AuthenticationMiddleware;
+use App\Middleware\LoggerMiddleware;
 use App\Service\Authenticator\AuthenticatorInterface;
 use Dotenv\Dotenv;
+use Psr\Log\LoggerInterface;
 use Slim\App;
 use Slim\Middleware\Session;
 use Slim\Views\Twig;
@@ -64,6 +66,8 @@ class AppFactory
 
         /** @var Twig $view */
         $view = $container->get('view');
+        /** @var LoggerInterface $logger */
+        $logger = $container->get('logger');
 
         /** @var array{session: array} $settings */
         $settings = $container->get('settings');
@@ -73,6 +77,7 @@ class AppFactory
         }
 
         return $app
+            ->add(new LoggerMiddleware($logger))
             ->add(new AuthenticationMiddleware($authenticator, $view))
             ->add(new Session($settings['session']))
             ->add(new ApiExceptionMiddleware());
