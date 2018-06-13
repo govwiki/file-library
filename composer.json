@@ -31,6 +31,7 @@
         "fzaninotto/faker": "^1.7",
         "microsoft/azure-storage-file": "^1.1",
         "mkraemer/react-pcntl": "^3.0",
+        "monolog/monolog": "^1.23",
         "react/event-loop": "^0.4",
         "react/stream": "^0.7.7",
         "sabre/dav": "^3.2",
