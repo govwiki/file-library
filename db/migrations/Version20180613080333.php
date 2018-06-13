@@ -20,7 +20,6 @@ class Version20180613080333 extends AbstractMigration
 
         $this->addSql('CREATE INDEX IDX_SLUG ON files (slug)');
         $this->addSql('CREATE INDEX IDX_PUBLIC_PATH ON files (public_path)');
-        $this->addSql('ALTER TABLE files RENAME INDEX idx_ad63a3de727aca70 TO IDX_6354059727ACA70');
     }
 
     /**
@@ -33,6 +32,5 @@ class Version20180613080333 extends AbstractMigration
 
         $this->addSql('DROP INDEX IDX_SLUG ON files');
         $this->addSql('DROP INDEX IDX_PUBLIC_PATH ON files');
-        $this->addSql('ALTER TABLE files RENAME INDEX idx_6354059727aca70 TO IDX_AD63A3DE727ACA70');
     }
 }
