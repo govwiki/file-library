@@ -9,6 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * Class AbstractFile
  *
+ * @ORM\Table(indexes={
+ *     @ORM\Index(name="IDX_SLUG", columns={"slug"}),
+ *     @ORM\Index(name="IDX_PUBLIC_PATH", columns={"public_path"}),
+ * })
  * @ORM\Entity(repositoryClass="App\Repository\FileRepository")
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="type", type="string")

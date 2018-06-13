@@ -19,17 +19,81 @@ use Faker\Generator;
 class DocumentFixture extends AbstractFixture implements OrderedFixtureInterface
 {
 
+    const MIN_COUNT = 10000;
+    const MAX_COUNT = 15000;
+
+    const MIN_YEAR = 2000;
+    const MAX_YEAR = 2018;
+
     const TOP_DIRS = [
-        'Non Profit',
-        'School Districts',
+        'Community College District',
+        'General Purpose',
+        'Non-Profit',
+        'Public Higher Education',
+        'School District',
+        'Special District',
+        'States',
+        'Unclassified',
     ];
 
     const STATE = [
+        'AL',
+        'AK',
+        'AS',
+        'AZ',
+        'AR',
         'CA',
+        'CO',
+        'CT',
+        'DE',
+        'DC',
+        'FM',
+        'FL',
+        'GA',
+        'GU',
+        'HI',
+        'ID',
+        'IL',
+        'IN',
+        'IA',
+        'KS',
+        'KY',
+        'LA',
+        'ME',
+        'MD',
+        'MA',
         'MI',
+        'MN',
+        'MS',
+        'MO',
+        'MT',
+        'NE',
+        'NV',
+        'NH',
+        'NJ',
+        'NM',
+        'NY',
+        'NC',
+        'ND',
+        'MP',
         'OH',
-        'AI',
+        'OK',
+        'OR',
+        'PA',
+        'PR',
+        'RI',
+        'SC',
+        'SD',
+        'TN',
         'TX',
+        'UT',
+        'VT',
+        'VI',
+        'VA',
+        'WA',
+        'WV',
+        'WI',
+        'WY',
     ];
 
     const BASEFILE_SIZE = 1024 * 1024;
@@ -69,9 +133,8 @@ class DocumentFixture extends AbstractFixture implements OrderedFixtureInterface
             }
 
             $manager->persist($directory);
+            $manager->flush();
         }
-
-        $manager->flush();
     }
 
     /**
@@ -92,6 +155,15 @@ class DocumentFixture extends AbstractFixture implements OrderedFixtureInterface
     private function generateYearsDirs(Directory $parent): array
     {
         $faker = $this->getFaker();
+
+        if (self::MIN_YEAR >= self::MAX_YEAR - 1) {
+            throw new \LogicException('self::MIN_YEAR should be less than self::MAX_YEAR - 1!');
+        }
+
+        $minYear = $faker->numberBetween(self::MIN_YEAR, self::MAX_YEAR - 1);
+        $maxYear = $faker->numberBetween($minYear, self::MAX_YEAR);
+        $range = \range($minYear, $maxYear);
+
         return \array_map(function (int $year) use ($parent): Directory {
             $name = (string) $year;
             $publicPath = $parent->getPublicPath() .'/'. $name;
@@ -102,7 +174,7 @@ class DocumentFixture extends AbstractFixture implements OrderedFixtureInterface
                 $this->slugify($publicPath),
                 $parent
             );
-        }, $faker->randomElements(\range(2014, 2018), $faker->numberBetween(2, 4)));
+        }, $faker->randomElements($range, $faker->numberBetween(1, \count($range))));
     }
 
     /**
@@ -113,7 +185,7 @@ class DocumentFixture extends AbstractFixture implements OrderedFixtureInterface
     private function generateDocuments(Directory $parent): array
     {
         $faker = $this->getFaker();
-        $count = $faker->numberBetween(10, 40);
+        $count = $faker->numberBetween(self::MIN_COUNT, self::MAX_COUNT);
         $documents = [];
 
         for ($i = 0; $i < $count; ++$i) {

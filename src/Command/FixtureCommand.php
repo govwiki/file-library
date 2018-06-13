@@ -77,12 +77,24 @@ class FixtureCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        \ini_set('memory_limit', '1G');
+
+        $conn = $this->em->getConnection();
         $loader = new Loader();
 
         $loader->loadFromDirectory($this->fixturesPath);
+        $output->writeln('<info>Load fixtures</info>');
 
-        $executor = new ORMExecutor($this->em, new ORMPurger());
-        $executor->execute($loader->getFixtures());
+        try {
+            $conn->exec('SET FOREIGN_KEY_CHECKS = 0');
+            $executor = new ORMExecutor($this->em, new ORMPurger());
+            $executor->setLogger(function (string $message) use ($output) {
+                $output->writeln("\t> ". $message);
+            });
+            $executor->execute($loader->getFixtures());
+        } finally {
+            $conn->exec('SET FOREIGN_KEY_CHECKS = 1');
+        }
 
         return 0;
     }
