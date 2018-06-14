@@ -13,9 +13,11 @@
     </table>
 
     {%- if user is defined -%}
-        <div style="text-align: center">
-            <button id="document-add" class="btn">Add new document</button>
-        </div>
+        {%- if currentDir is not null -%}
+            <div style="text-align: center">
+                <button id="document-add" class="btn">Add new document</button>
+            </div>
+        {%- endif -%}
 
         {%- embed './Partial/modal.twig' with {
             id: 'document-move-modal',

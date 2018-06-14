@@ -33,8 +33,7 @@
           url: '/files/' + data.slug,
           method: 'DELETE'
         })
-          .then(function () { dtTable.draw() })
-          .fail(function (xhr) { alert(JSON.parse(xhr.responseText).error.description) });
+          .then(function () { dtTable.draw() });
       }
     }
   };
@@ -199,6 +198,7 @@
         return;
       }
 
+      renameModal.showLoader();
       api({
         url: event.target.getAttribute('action'),
         method: 'PUT',
@@ -208,7 +208,9 @@
           dtTable.draw();
           renameModal.hide();
         })
-        .fail(function (xhr) { alert(JSON.parse(xhr.responseText).error.description) });
+        .always(function () {
+          renameModal.hideLoader();
+        });
     });
 
     for (var selector in CLICK_HANDLERS) {
@@ -233,6 +235,7 @@
       event.stopPropagation();
       event.preventDefault();
 
+      moveModal.showLoader();
       api({
         url: event.target.getAttribute('action'),
         method: 'PUT',
@@ -242,7 +245,9 @@
           dtTable.draw();
           moveModal.hide();
         })
-        .fail(function (xhr) { alert(JSON.parse(xhr.responseText).error.description) });
+        .always(function () {
+          moveModal.hideLoader();
+        });
     });
 
     var uploadModal = new Modal('#document-add-modal');
@@ -255,6 +260,7 @@
       var fd = new FormData();
       fd.append('file', $uploadForm.find('input').prop('files')[0]);
 
+      uploadModal.showLoader();
       api({
         url: event.target.getAttribute('action'),
         method: 'POST',
@@ -266,7 +272,9 @@
           dtTable.draw();
           uploadModal.hide();
         })
-        .fail(function (xhr) { alert(JSON.parse(xhr.responseText).error.description) });
+        .always(function () {
+          uploadModal.hideLoader();
+        });
     });
 
     $('#document-add').click(function (event) {
@@ -283,6 +291,21 @@
     }, cfg);
 
     return $.ajax(_cfg)
+      .catch(function (xhr) {
+        var message = 'Can\'t process request due to server error';
+
+        try {
+          message = JSON.parse(xhr.responseText).error.description;
+        } catch (error) {
+          if (xhr.status === 404) {
+            message = 'File of directory not found';
+          }
+        }
+
+        alert(message);
+
+        throw new Error(message);
+      })
   }
 
   function Modal(selector) {
@@ -290,6 +313,7 @@
 
     self._$el = $(selector);
     self._$el.find('[data-modal-close]').click(function () { self.hide(); });
+    self._$loader = self._$el.find('.loader-wrapper');
     $(window).click(function (event) { (event.target === self._$el[0]) && self.hide() });
   }
   Modal.prototype.setTitle = function setTitle(title) {
@@ -309,6 +333,14 @@
   };
   Modal.prototype.$ = function find(selector) {
     return this._$el.find(selector)
+  };
+
+  Modal.prototype.showLoader = function showLoader() {
+    this._$loader.show();
+  };
+
+  Modal.prototype.hideLoader = function showLoader() {
+    this._$loader.hide();
   };
 
   function debounce(fn, delay) {
