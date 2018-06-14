@@ -335,8 +335,10 @@ class ORMFileListBuilder implements FileListBuilderInterface
         return $this->em->createQueryBuilder()
             ->select('File')
             ->from(AbstractFile::class, 'File')
-            ->where('File.parent in (:ids)')
-            ->setParameter('ids', $nestedDirsIds);
+            ->join('File.parent', 'Parent')
+            ->where('File.parent IN (:ids) OR Parent.publicPath = :path')
+            ->setParameter('ids', $nestedDirsIds)
+            ->setParameter('path', $this->publicPath);
     }
 
     /**
