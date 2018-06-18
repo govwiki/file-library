@@ -243,7 +243,7 @@ class FileController extends AbstractController
                 'error' => [
                     'title' => 'Invalid request',
                     'code' => 'ALREADY_EXISTS',
-                    'description' => \sprintf('File "%s" is already exists', $filePath),
+                    'description' => \sprintf('File "%s" already exists', $filePath),
                 ],
             ])
                 ->withStatus(400);

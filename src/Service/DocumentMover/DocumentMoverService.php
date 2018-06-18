@@ -64,7 +64,7 @@ class DocumentMoverService
 
         $filePath = $path .'/'. $year .'/'. $name;
         if ($this->storage->isFileExists($filePath)) {
-            throw new DocumentMoverException(\sprintf('File "%s" is already exists', $filePath));
+            throw new DocumentMoverException(\sprintf('File "%s" already exists', $filePath));
         }
 
         $file->move($filePath);
