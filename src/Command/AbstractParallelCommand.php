@@ -97,11 +97,7 @@ abstract class AbstractParallelCommand extends Command
             $queue = \msg_get_queue($this->computeKey($this->getName()));
             $this->mainProcess($queue, $mainOutput);
 
-            //
-            // Wait until all messages from queue was consumed.
-            //
-            for (;\msg_stat_queue($queue)['msg_qnum'] > 0; \sleep(1)) {}
-
+            $this->waitQueue($queue);
             \msg_remove_queue($queue);
 
             $mainOutput->writeln('Stop all workers \'cause queue is empty');
@@ -119,6 +115,18 @@ abstract class AbstractParallelCommand extends Command
         }
 
         return 0;
+    }
+
+    /**
+     * Wait until all messages from queue was consumed.
+     *
+     * @param resource $queue The queue.
+     *
+     * @return void
+     */
+    protected function waitQueue($queue)
+    {
+        for (;\msg_stat_queue($queue)['msg_qnum'] > 0; \sleep(1)) {}
     }
 
     /**

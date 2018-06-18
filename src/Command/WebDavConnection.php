@@ -59,9 +59,9 @@ class WebDavConnection
     /**
      * @param string $path Path to fetched file.
      *
-     * @return Stream
+     * @return Stream|null
      */
-    public function getFile(string $path): Stream
+    public function getFile(string $path)
     {
         //
         // For some reasons low level http request sending code don't do it for us,
@@ -71,6 +71,10 @@ class WebDavConnection
         //
         $absPath = $this->client->getAbsoluteUrl($this->buildPath($path));
         $response = $this->client->send(new Request('GET', $absPath));
+
+        if ($response->getStatus() !== 200) {
+            return null;
+        }
 
         return new Stream($response->getBodyAsStream());
     }

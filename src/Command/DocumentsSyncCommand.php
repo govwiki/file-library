@@ -123,7 +123,7 @@ class DocumentsSyncCommand extends Command
             $pid = \pcntl_fork();
             switch ($pid) {
                 case -1:
-                    $output->writeln('Can\'t for new child');
+                    $output->writeln('Can\'t spawn new child');
                     return 1;
 
                 case 0:

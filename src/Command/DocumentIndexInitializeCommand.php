@@ -197,6 +197,7 @@ class DocumentIndexInitializeCommand extends AbstractParallelCommand
         foreach ($files as $file) {
             if ($file->isDirectory()) {
                 \msg_send($queue, self::MSG_DIRECTORY, [ $file->getPath() ]);
+                $this->waitQueue($queue);
                 $this->indexDirectory($queue, $output, $file->getPath());
             } else {
                 \msg_send($queue, self::MSG_FILE, [ $file->getPath(), $file->getSize() ]);
