@@ -221,7 +221,7 @@ class DocumentCorruptionCheckCommand extends AbstractParallelCommand
                             ));
                         }
 
-                        $this->storage->createFile($path, $stream);
+                        $this->storage->getAdapter()->createFile($path, $stream);
                     } else {
                         $output->writeln(\sprintf('<info>File "%s" valid.</info>', $path));
                     }
