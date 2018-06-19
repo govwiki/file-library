@@ -53,6 +53,9 @@ class WebDavConnection
        }
 
        $this->client = new Client($settings);
+
+       $this->client->addCurlSetting(\CURLOPT_CONNECTTIMEOUT, 30);
+       $this->client->addCurlSetting(\CURLOPT_TIMEOUT, 5 * 60);
        $this->basePath = \rtrim($basePath, '/');
     }
 

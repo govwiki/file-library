@@ -183,9 +183,6 @@ class DocumentCorruptionCheckCommand extends AbstractParallelCommand
                         ));
                     }
 
-                    // File should be downloaded again if it's size is 0.
-                    $corrupted = $file->getSize() <= 0;
-
                     // Check file content.
                     $tmpPath = \tempnam(\sys_get_temp_dir(), 'corr_check_');
                     if (($tmpPath === false) || ! \is_writable($tmpPath)) {
