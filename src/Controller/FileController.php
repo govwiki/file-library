@@ -143,7 +143,7 @@ class FileController extends AbstractController
                     'error' => [
                         'title'       => 'Directory not found',
                         'code'        => 'NOT_FOUND',
-                        'description' => sprintf('Can\'t find directory by slug "%s"', $slug),
+                        'description' => \sprintf('Can\'t find directory by slug "%s"', $slug),
                     ],
                 ])
                     ->withStatus(404);
@@ -173,16 +173,17 @@ class FileController extends AbstractController
                 ->setOffset($request->getQueryParam('offset'));
         }
 
-        $count = count($list);
+        $count = \count($list);
 
         return $response->withJson([
             'draw' => $request->getQueryParam('draw'),
             'recordsTotal' => $count,
             'recordsFiltered' => $count,
-            'data' => array_map(function (AbstractFile $file) {
+            'data' => \array_map(function (AbstractFile $file) {
                 if ($file instanceof Document) {
                     return [
                         'type' => 'document',
+                        'ext' => $file->getExt(),
                         'id' => $file->getId(),
                         'name' => $file->getName(),
                         'slug' => $file->getSlug(),
@@ -195,7 +196,7 @@ class FileController extends AbstractController
                 }
                 
                 return $file;
-            }, iterator_to_array($list)),
+            }, \iterator_to_array($list)),
         ]);
     }
 
