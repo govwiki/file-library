@@ -196,8 +196,18 @@ class DocumentIndexInitializeCommand extends AbstractParallelCommand
         /** @var AdapterFile $file */
         foreach ($files as $file) {
             if ($file->isDirectory()) {
-                \msg_send($queue, self::MSG_DIRECTORY, [ $file->getPath() ]);
+                //
+                // We should wait until all job in queue is processed before add
+                // new directory.
+                //
                 $this->waitQueue($queue);
+                \msg_send($queue, self::MSG_DIRECTORY, [ $file->getPath() ]);
+
+                //
+                // Also wait until directory is created.
+                //
+                $this->waitQueue($queue);
+                \sleep(2);
                 $this->indexDirectory($queue, $output, $file->getPath());
             } else {
                 \msg_send($queue, self::MSG_FILE, [ $file->getPath(), $file->getSize() ]);
