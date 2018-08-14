@@ -149,11 +149,18 @@ class AzureStorageAdapter implements StorageAdapterInterface
             'https'
         );
 
+        //
+        // Urlencode all parts of path to file in order to prevent funny bugs
+        // with url. For example file may contains '#', '&' or '?' and we may got
+        // broken download link :)
+        //
+        $path = \implode('/', \array_map('rawurlencode', \explode('/', \ltrim($path, '/'))));
+
         return \sprintf(
             'https://%s.file.core.windows.net/%s/%s?%s',
             $this->accountName,
             $this->share,
-            \ltrim($path, '/'),
+            $path,
             $token
         );
     }
