@@ -194,7 +194,7 @@ class FileController extends AbstractController
                         'fileSize' => $file->getFileSize(),
                     ];
                 }
-                
+
                 return $file;
             }, \iterator_to_array($list)),
         ]);
@@ -271,6 +271,29 @@ class FileController extends AbstractController
         $document = $this->getFileFromArgs($args);
 
         $this->storage->remove($document->getPublicPath());
+
+        return $response
+            ->withHeader('Content-Type', 'application/json;charset=utf-8')
+            ->withStatus(204);
+    }
+
+    /**
+     * @param Request  $request  A http request.
+     * @param Response $response A http response.
+     *
+     * @return ResponseInterface
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameters)
+     */
+    public function butchRemove(Request $request, Response $response): ResponseInterface
+    {
+        $ids = $request->getParsedBodyParam('ids');
+
+        $documents = $this->repository->findByIds($ids);
+
+        foreach ($documents as $document) {
+            $this->storage->remove($document->getPublicPath());
+        }
 
         return $response
             ->withHeader('Content-Type', 'application/json;charset=utf-8')

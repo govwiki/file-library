@@ -42,6 +42,19 @@ class FileRepository extends EntityRepository implements FileRepositoryInterface
     }
 
     /**
+     * Find files by ids.
+     *
+     * @param integer[] $ids Files ids.
+     *
+     * @return AbstractFile[]
+     */
+    public function findByIds(array $ids): array
+    {
+        /** @psalm-suppress LessSpecificReturnStatement */
+        return $this->findBy([ 'id' => $ids ]);
+    }
+
+    /**
      * @return string[]
      * @psalm-return Array<int, string>
      */

@@ -2,6 +2,9 @@
   var dtTable;
   var moveModal;
   var renameModal;
+  var $butchRemoveBtn = $('#document-butch-remove');
+  
+  var butchDelete = [];
 
   var SIZE_POSTFIX = [
     'Bytes',
@@ -12,29 +15,67 @@
   ];
 
   var CLICK_HANDLERS = {
-    'tbody tr': function (data) {
-      window.location = '/' + data.slug;
+    'tbody tr': {
+      cb: function (data) {
+        window.location = '/' + data.slug;
+      },
+      prevent: true
     },
-    '.document--action__download': function(data) {
-      window.location = data.downloadUrl;
+    '.document--field__checkbox': {
+      cb: function (data, event) {
+        var $checkbox = $(event.currentTarget).find('input');
+        var id = data.id;
+
+        if ($checkbox.is(':checked')) {
+          butchDelete.push(id);
+        } else {
+          var idx = butchDelete.indexOf(id);
+          
+          if (idx !== -1) {
+            butchDelete.splice(idx, 1);
+          }
+        }
+
+        if (butchDelete.length) {
+          $butchRemoveBtn.attr('disabled', false);
+        } else {
+          $butchRemoveBtn.attr('disabled', true);
+        }
+      },
+      prevent: false
     },
-    '.document--action__move': function (data) {
-      moveModal.$('#move-form').attr('action', '/files/' + data.slug + '/move');
-      moveModal.setTitle('Move "'+ data.name +'"').show();
+    '.document--action__download': {
+      cb: function(data) {
+        window.location = data.downloadUrl;
+      },
+      prevent: true
     },
-    '.document--action__rename': function (data) {
-      renameModal.$('#document-name').val(data.name + '.' + data.ext);
-      renameModal.$('#rename-form').attr('action', '/files/' + data.slug + '/rename');
-      renameModal.setTitle('Rename "' + data.name + '"').show();
+    '.document--action__move': {
+      cb: function (data) {
+        moveModal.$('#move-form').attr('action', '/files/' + data.slug + '/move');
+        moveModal.setTitle('Move "'+ data.name +'"').show();
+      },
+      prevent: true
     },
-    '.document--action__remove': function (data) {
-      if (confirm('Remove document "'+ data.name +'"')) {
-        api({
-          url: '/files/' + data.slug,
-          method: 'DELETE'
-        })
-          .then(function () { dtTable.draw() });
-      }
+    '.document--action__rename': {
+      cb: function (data) {
+        renameModal.$('#document-name').val(data.name + '.' + data.ext);
+        renameModal.$('#rename-form').attr('action', '/files/' + data.slug + '/rename');
+        renameModal.setTitle('Rename "' + data.name + '"').show();
+      },
+      prevent: true
+    },
+    '.document--action__remove': {
+      cb: function (data) {
+        if (confirm('Remove document "'+ data.name +'"')) {
+          api({
+            url: '/files/' + data.slug,
+            method: 'DELETE'
+          })
+            .then(function () { dtTable.draw() });
+        }
+      },
+      prevent: true
     }
   };
 
@@ -68,6 +109,18 @@
         }
       }
     ];
+    
+    if (documents.showCheckboxes) {
+      columns.unshift({
+        title: '',
+        data: function (data) {
+          return '<input type="checkbox" data-id="'+ data.id +'" />';
+        },
+        className: 'document--field__checkbox',
+        orderable: false,
+        searchable: false
+      })
+    }
 
     var ACTIONS = [
       {
@@ -113,12 +166,13 @@
         }).join('');
       },
       className: 'document--field__actions',
-      orderable: false
+      orderable: false,
+      searchable: false
     });
 
     var $table = $('#documents-table');
     dtTable = $table.DataTable({
-      order: [[ 0, window.documents.defaultOrder ]],
+      order: [[ documents.showCheckboxes ? 1 : 0, window.documents.defaultOrder ]],
       pageLength: 100,
       lengthMenu: [
         [ 10, 25, 50, 100, -1 ],
@@ -216,13 +270,17 @@
     for (var selector in CLICK_HANDLERS) {
       if (CLICK_HANDLERS.hasOwnProperty(selector)) {
         (function (selector) {
+          var cb = CLICK_HANDLERS[selector].cb;
+          var prevent = CLICK_HANDLERS[selector].prevent;
+          
           $table.on('click', selector, function (event) {
             event.stopPropagation();
-            event.preventDefault();
 
-            var data = dtTable.row($(this).closest('tr')).data();
+            if (prevent) {
+              event.preventDefault();
+            }
 
-            CLICK_HANDLERS[selector](data);
+            cb(dtTable.row($(this).closest('tr')).data(), event);
           })
         })(selector);
       }
@@ -283,6 +341,21 @@
 
       uploadModal.show();
     });
+  });
+  
+  $butchRemoveBtn.click(function () {
+    api({
+      url: documents.butchRemoveUrl,
+      type: 'DELETE',
+      data: {
+        ids: butchDelete
+      }
+    })
+      .then(function () {
+        butchDelete = [];
+        $butchRemoveBtn.attr('disabled', true);
+        dtTable.draw();
+      })
   });
 
   function api(cfg) {

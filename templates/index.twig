@@ -15,6 +15,7 @@
     {%- if user is defined -%}
         {%- if currentDir is not null -%}
             <div style="text-align: center">
+                <button id="document-butch-remove" class="btn" disabled>Remove all Checked Items</button>
                 <button id="document-add" class="btn">Add new document</button>
             </div>
         {%- endif -%}
@@ -86,8 +87,10 @@
     <script>
       window.documents = {
         showActions: {{ user is defined ? 'true' : 'false' }},
+        showCheckboxes: {{ user is defined ? 'true' : 'false' }},
         user: JSON.parse('{{ userJson|e('js') }}'),
-        defaultOrder: '{{ defaultOrder }}'
+        defaultOrder: '{{ defaultOrder }}',
+        butchRemoveUrl: '{{ path_for('file-butch-remove') }}'
       };
     </script>
     <script src="/documents.js?v=1"></script>

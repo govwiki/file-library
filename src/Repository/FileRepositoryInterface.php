@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\AbstractFile;
-use Doctrine\ORM\QueryBuilder;
 
 /**
  * Interface FileRepositoryInterface
@@ -35,6 +34,15 @@ interface FileRepositoryInterface
      * @return AbstractFile|null
      */
     public function findBySlug(string $slug);
+
+    /**
+     * Find files by ids.
+     *
+     * @param integer[] $ids Files ids.
+     *
+     * @return AbstractFile[]
+     */
+    public function findByIds(array $ids): array;
 
     /**
      * @return string[]

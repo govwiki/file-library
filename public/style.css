@@ -18,7 +18,7 @@ h1 {
 h2 {
 	font-size: 16px;
 	text-align: center;
-	padding: 0 0 12px 0; 
+	padding: 0 0 12px 0;
 }
 
 header,
@@ -27,7 +27,7 @@ footer,
 .form--login {
 	box-shadow: 0 5px 10px -5px rgba(0,0,0,0.5);
 	position: relative;
-	background: white; 
+	background: white;
 }
 
 main {
@@ -58,7 +58,7 @@ th {
 }
 
 th small {
-	font-size: 9px; 
+	font-size: 9px;
 }
 
 td, th {
@@ -122,6 +122,18 @@ table.dataTable tbody tr:hover td a {
 
 .dataTables_length {
  	margin: 5px;
+}
+
+.document--field__checkbox {
+	width: 15px;
+	text-align: center;
+	padding-right: 0 !important;
+	padding-left: 5px !important;
+}
+
+.document--field__checkbox input {
+	position: relative;
+	top: 2px
 }
 
 .document td:first-of-type {
@@ -212,6 +224,13 @@ a:hover {
 	background: #FE4902;
 	text-decoration: none;
 	color: #ffffff;
+}
+.btn:disabled,
+.btn:hover:disabled,
+.btn:active:disabled {
+	color: gray;
+	border-color: gray;
+	background: white;
 }
 
 .btn-borderless {
