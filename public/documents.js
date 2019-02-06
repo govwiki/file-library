@@ -3,7 +3,7 @@
   var moveModal;
   var renameModal;
   var $butchRemoveBtn = $('#document-butch-remove');
-  
+
   var butchDelete = [];
 
   var SIZE_POSTFIX = [
@@ -30,7 +30,7 @@
           butchDelete.push(id);
         } else {
           var idx = butchDelete.indexOf(id);
-          
+
           if (idx !== -1) {
             butchDelete.splice(idx, 1);
           }
@@ -109,7 +109,7 @@
         }
       }
     ];
-    
+
     if (documents.showCheckboxes) {
       columns.unshift({
         title: '',
@@ -184,6 +184,8 @@
           dtTable.search($search.val()).draw();
         }, dtTable.settings()[0].searchDelay);
         var $btn = $('<button style="display: none" class="btn btn-small">Reset</button>');
+        var $statesForm = $('#states-form').show();
+        var $statesFormLabel = $('#states-form-label').show();
 
         $btn.click(function () {
           dtTable.search('').draw();
@@ -202,6 +204,17 @@
           .on('keyup cut paste', debouncedSearch);
 
         $search.parent().append($btn);
+        $search.parent().append($statesFormLabel);
+        $search.parent().append($statesForm);
+
+          $statesForm.select2({
+              templateSelection: function (state) {
+                  if (!state.id) { return state.text; }
+                  return $(
+                      '<span><img style="display: inline-block; height: 10px;" src="images/icon.jpg" /> ' + state.text + '</span>'
+                  );
+              }
+          });
       },
       autoWidth: false,
       searching: true,
@@ -214,17 +227,21 @@
         type: 'GET',
         data: function (data) {
           var order = {};
+          var state = $('#states-form').val();
 
           $.each(data.order, function (idx, orderCfg) {
             order[data.columns[orderCfg.column].data] = orderCfg.dir;
           });
+
+          data.state =  (state !== '0') ? state : '';
 
           return {
             draw: data.draw,
             order: order,
             offset: data.start || 0,
             limit: data.length,
-            search: data.search.value
+            search: data.search.value,
+            state: data.state,
           };
         }
       },
@@ -233,6 +250,10 @@
         row.dataset.slug = data.slug;
       }
     });
+
+      $('#states-form').on('change', function () {
+        dtTable.draw();
+      });
 
     renameModal = new Modal('#document-rename-modal');
     moveModal = new Modal('#document-move-modal');
@@ -272,7 +293,7 @@
         (function (selector) {
           var cb = CLICK_HANDLERS[selector].cb;
           var prevent = CLICK_HANDLERS[selector].prevent;
-          
+
           $table.on('click', selector, function (event) {
             event.stopPropagation();
 
@@ -342,7 +363,7 @@
       uploadModal.show();
     });
   });
-  
+
   $butchRemoveBtn.click(function () {
     api({
       url: documents.butchRemoveUrl,

@@ -153,6 +153,7 @@ class FileController extends AbstractController
         }
 
         $search = $request->getQueryParam('search', '');
+        $state = $request->getQueryParam('state', '');
         $limit = (int) $request->getQueryParam('limit');
 
         $directory = $this->storage->getDirectory($publicPath);
@@ -161,9 +162,10 @@ class FileController extends AbstractController
         }
 
         $list = $directory->getListBuilder()
-            ->onlyDocuments($search !== '')
-            ->recursive($search !== '')
+            ->onlyDocuments($search !== '' || $state !== '')
+            ->recursive($search !== '' || $state !== '')
             ->filterBy($search)
+            ->filterByState($state)
             ->showHidden($request->getAttribute('user') instanceof User)
             ->orderBy($request->getQueryParam('order'));
 

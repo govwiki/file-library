@@ -47,6 +47,13 @@ interface FileListBuilderInterface extends \Countable, \IteratorAggregate
     public function filterBy(string $value);
 
     /**
+     * @param string $value
+     *
+     * @return $this
+     */
+    public function filterByState(string $value);
+
+    /**
      * @param boolean $onlyDocuments Fetch only documents without directory.
      *
      * @return $this

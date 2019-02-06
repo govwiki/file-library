@@ -76,6 +76,11 @@ class ORMFileListBuilder implements FileListBuilderInterface
     private $count;
 
     /**
+     * @var string
+     */
+    private $state = '';
+
+    /**
      * ORMIndexFileList constructor.
      *
      * @param EntityManagerInterface $em         A EntityManagerInterface instance.
@@ -181,6 +186,21 @@ class ORMFileListBuilder implements FileListBuilderInterface
     }
 
     /**
+     * @param string $value
+     *
+     * @return $this
+     */
+    public function filterByState(string $value)
+    {
+        if ($this->state !== $value) {
+            $this->markAsDirty();
+        }
+        $this->state = $value;
+
+        return $this;
+    }
+
+    /**
      * @param boolean $onlyDocuments Fetch only documents without directory.
      *
      * @return $this
@@ -274,8 +294,14 @@ class ORMFileListBuilder implements FileListBuilderInterface
 
             if ($this->filter !== '') {
                 $qb
-                    ->andWhere('File.name LIKE :name')
-                    ->setParameter('name', '%'. preg_replace('/\s+/', '%', $this->filter) .'%');
+                    ->andWhere('File.name LIKE :filter')
+                    ->setParameter('filter', '%'. preg_replace('/\s+/', '%', $this->filter) .'%');
+            }
+
+            if ($this->state !== '') {
+                $qb
+                    ->andWhere('File.name LIKE :state')
+                    ->setParameter('state', preg_replace('/\s+/', '%', $this->state) . '%');
             }
 
             $this->qb = $qb;
