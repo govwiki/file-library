@@ -238,21 +238,23 @@ class FileController extends AbstractController
         }
 
         /** @var UploadedFileInterface $file */
-        $file = $files['file'];
+        $uploadedFiles = $files['file'];
 
-        $filePath = $directory->getPublicPath() . '/'. $file->getClientFilename();
-        if ($this->storage->isFileExists($filePath)) {
-            return $response->withJson([
-                'error' => [
-                    'title' => 'Invalid request',
-                    'code' => 'ALREADY_EXISTS',
-                    'description' => \sprintf('File "%s" already exists', $filePath),
-                ],
-            ])
-                ->withStatus(400);
+        foreach ($uploadedFiles as $file) {
+            $filePath = $directory->getPublicPath() . '/' . $file->getClientFilename();
+            if ($this->storage->isFileExists($filePath)) {
+                return $response->withJson([
+                    'error' => [
+                        'title'       => 'Invalid request',
+                        'code'        => 'ALREADY_EXISTS',
+                        'description' => \sprintf('File "%s" already exists', $filePath),
+                    ],
+                ])
+                    ->withStatus(400);
+            }
+
+            $this->storage->createFile($filePath, $file->getStream());
         }
-
-        $this->storage->createFile($filePath, $file->getStream());
 
         return $response
             ->withHeader('Content-Type', 'application/json;charset=utf-8')

@@ -337,7 +337,13 @@
       event.preventDefault();
 
       var fd = new FormData();
-      fd.append('file', $uploadForm.find('input').prop('files')[0]);
+      var files = $uploadForm.find('input').prop('files');
+
+      for (var i = 0; i < files.length; i++) {
+          fd.append('file[]', files[i]);
+      }
+
+      // fd.append('file', $.makeArray($uploadForm.find('input').prop('files')));
 
       uploadModal.showLoader();
       api({
