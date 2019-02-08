@@ -356,6 +356,7 @@
         .then(function () {
           dtTable.draw();
           uploadModal.hide();
+          $uploadForm.find('input').val('');
         })
         .always(function () {
           uploadModal.hideLoader();
