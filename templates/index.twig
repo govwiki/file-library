@@ -93,7 +93,7 @@
         user: JSON.parse('{{ userJson|e('js') }}'),
         defaultOrder: '{{ defaultOrder }}',
         butchRemoveUrl: '{{ path_for('file-butch-remove') }}',
-        stateFilter: '{{ stateFilter }}'
+        stateFilter: '{{ (stateFilter) ? stateFilter : '0' }}'
       };
     </script>
     <script src="/documents.js?v=1"></script>

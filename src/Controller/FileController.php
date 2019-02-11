@@ -145,6 +145,8 @@ class FileController extends AbstractController
      */
     public function files(Request $request, Response $response, array $args): ResponseInterface
     {
+        $this->session->set('state_filter', $request->getQueryParam('state'));
+
         $slug = $this->getArgument($args, 'slug');
         $publicPath = '/';
 
@@ -174,8 +176,8 @@ class FileController extends AbstractController
         }
 
         $list = $directory->getListBuilder()
-            ->onlyDocuments($search !== '' || $state !== '')
-            ->recursive($search !== '' || $state !== '')
+            ->onlyDocuments($search !== '')
+            ->recursive($search !== '')
             ->filterBy($search)
             ->filterByState($state)
             ->showHidden($request->getAttribute('user') instanceof User)
