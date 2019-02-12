@@ -170,6 +170,9 @@
       searchable: false
     });
 
+    var $statesForm = $('#states-form');
+    $statesForm.val(window.documents.stateFilter);
+
     var $table = $('#documents-table');
     dtTable = $table.DataTable({
       order: [[ documents.showCheckboxes ? 1 : 0, window.documents.defaultOrder ]],
@@ -184,7 +187,7 @@
           dtTable.search($search.val()).draw();
         }, dtTable.settings()[0].searchDelay);
         var $btn = $('<button style="display: none" class="btn btn-small">Reset</button>');
-        var $statesForm = $('#states-form').show();
+        $statesForm.show();
         var $statesFormLabel = $('#states-form-label').show();
 
         $btn.click(function () {

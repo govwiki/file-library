@@ -81,8 +81,10 @@ class ContainerControllersFactory
             $storage = $container->get(Storage::class);
             /** @var DocumentMoverService $mover */
             $mover = $container->get(DocumentMoverService::class);
+            /** @var Helper $session */
+            $session = $container->get('session');
 
-            return new FileController($view, $repository, $storage, $mover);
+            return new FileController($view, $repository, $storage, $mover, $session);
         };
 
         /**

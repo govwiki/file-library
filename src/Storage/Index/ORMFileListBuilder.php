@@ -298,7 +298,7 @@ class ORMFileListBuilder implements FileListBuilderInterface
                     ->setParameter('filter', '%'. preg_replace('/\s+/', '%', $this->filter) .'%');
             }
 
-            if ($this->state !== '') {
+            if ($this->state !== '' && $this->filter !== '') {
                 $qb
                     ->andWhere('File.name LIKE :state')
                     ->setParameter('state', preg_replace('/\s+/', '%', $this->state) . '%');
@@ -383,7 +383,15 @@ class ORMFileListBuilder implements FileListBuilderInterface
             $qb
                 ->join('File.parent', 'Parent')
                 ->where('Parent.publicPath = :path')
-                ->setParameter('path', $this->publicPath);
+                ->setParameter('path', $this->publicPath)
+                ->andWhere($qb->expr()->orX(
+                    $qb->expr()->andX(
+                        $qb->expr()->isInstanceOf('File', 'App\Entity\Document'),
+                        $qb->expr()->like('File.name', ':state')
+                    ),
+                    $qb->expr()->isInstanceOf('File', 'App\Entity\Directory')
+                ))
+                ->setParameter('state', preg_replace('/\s+/', '%', $this->state) . '%');
         }
 
         return $qb;

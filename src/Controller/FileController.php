@@ -16,6 +16,7 @@ use Slim\Exception\NotFoundException;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Views\Twig;
+use SlimSession\Helper;
 
 /**
  * Class FileController
@@ -46,25 +47,33 @@ class FileController extends AbstractController
     private $documentMover;
 
     /**
+     * @var Helper
+     */
+    private $session;
+
+    /**
      * DocumentController constructor.
      *
-     * @param Twig                    $renderer      A template renderer.
-     * @param FileRepositoryInterface $repository    A FileRepositoryInterface
+     * @param Twig $renderer A template renderer.
+     * @param FileRepositoryInterface $repository A FileRepositoryInterface
      *                                               instance.
-     * @param Storage                 $storage       A Storage instance.
-     * @param DocumentMoverService    $documentMover A DocumentMoverService
+     * @param Storage $storage A Storage instance.
+     * @param DocumentMoverService $documentMover A DocumentMoverService
      *                                               instance.
+     * @param Helper $session
      */
     public function __construct(
         Twig $renderer,
         FileRepositoryInterface $repository,
         Storage $storage,
-        DocumentMoverService $documentMover
+        DocumentMoverService $documentMover,
+        Helper $session
     ) {
         $this->renderer = $renderer;
         $this->repository = $repository;
         $this->storage = $storage;
         $this->documentMover = $documentMover;
+        $this->session = $session;
     }
 
     /**
@@ -78,6 +87,8 @@ class FileController extends AbstractController
      */
     public function index(Request $request, Response $response, array $args): ResponseInterface
     {
+        $stateFilter = $this->session->get('state_filter');
+
         $slug = $this->getArgument($args, 'slug');
         $file = null;
         if ($slug !== null) {
@@ -97,6 +108,7 @@ class FileController extends AbstractController
                     'userJson' => json_encode($request->getAttribute('user')),
                     'topLevelDirNames' => $topLevelDirNames,
                     'defaultOrder' => ($file !== null) && ($file->getParent() === null) ? 'desc' : 'asc',
+                    'stateFilter' => $stateFilter
                 ]);
 
             case $file instanceof Document:
@@ -133,6 +145,8 @@ class FileController extends AbstractController
      */
     public function files(Request $request, Response $response, array $args): ResponseInterface
     {
+        $this->session->set('state_filter', $request->getQueryParam('state'));
+
         $slug = $this->getArgument($args, 'slug');
         $publicPath = '/';
 
@@ -162,8 +176,8 @@ class FileController extends AbstractController
         }
 
         $list = $directory->getListBuilder()
-            ->onlyDocuments($search !== '' || $state !== '')
-            ->recursive($search !== '' || $state !== '')
+            ->onlyDocuments($search !== '')
+            ->recursive($search !== '')
             ->filterBy($search)
             ->filterByState($state)
             ->showHidden($request->getAttribute('user') instanceof User)
