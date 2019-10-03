@@ -15,6 +15,7 @@ use Psr\Http\Message\UploadedFileInterface;
 use Slim\Exception\NotFoundException;
 use Slim\Http\Request;
 use Slim\Http\Response;
+use Slim\Interfaces\RouterInterface;
 use Slim\Views\Twig;
 use SlimSession\Helper;
 
@@ -52,6 +53,11 @@ class FileController extends AbstractController
     private $session;
 
     /**
+     * @var RouterInterface
+     */
+    private $router;
+
+    /**
      * DocumentController constructor.
      *
      * @param Twig $renderer A template renderer.
@@ -61,19 +67,22 @@ class FileController extends AbstractController
      * @param DocumentMoverService $documentMover A DocumentMoverService
      *                                               instance.
      * @param Helper $session
+     * @param RouterInterface $router
      */
     public function __construct(
         Twig $renderer,
         FileRepositoryInterface $repository,
         Storage $storage,
         DocumentMoverService $documentMover,
-        Helper $session
+        Helper $session,
+        RouterInterface $router
     ) {
         $this->renderer = $renderer;
         $this->repository = $repository;
         $this->storage = $storage;
         $this->documentMover = $documentMover;
         $this->session = $session;
+        $this->router = $router;
     }
 
     /**
@@ -87,6 +96,12 @@ class FileController extends AbstractController
      */
     public function index(Request $request, Response $response, array $args): ResponseInterface
     {
+        //Temp hide
+        $user = $request->getAttribute('user');
+        if (! $user instanceof User) {
+            return $response->withRedirect($this->router->pathFor('login'));
+        }
+
         $stateFilter = $this->session->get('state_filter');
 
         $slug = $this->getArgument($args, 'slug');

@@ -1,6 +1,14 @@
 {% extends 'layout.twig' %}
 
 {% block main %}
+    <div style="width: 60%; margin: 0 auto;">
+        <p style="padding: 1rem; text-align: center;">The financial statements library contains over 200,000 CAFRs and
+            Single Audits produced by government and
+            non-profit entities. While we seek funding to provide this library to the general public for free,
+            access is only available to registered users. To discuss subscription options and obtain a password,
+            please contact Marc Joffe at <a href="mailto:marc @municipalfinance.org">marc@municipalfinance.org</a>.
+        </p>
+    </div>
     <div class="form form--login">
         <form method="post">
             {%- if error != '' -%}
