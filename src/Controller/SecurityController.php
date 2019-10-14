@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\EntityFactory;
+use App\Repository\UserRepository;
 use App\Service\Authenticator\AuthenticatorException;
 use App\Service\Authenticator\AuthenticatorInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -47,19 +49,32 @@ class SecurityController extends AbstractController
     private $domain;
 
     /**
+     * @var EntityFactory
+     */
+    private $entityFactory;
+    /**
+     * @var UserRepository
+     */
+    private $repository;
+
+    /**
      * LoginAction constructor.
      *
      * @param AuthenticatorInterface $authenticator A AuthenticatorInterface instance.
-     * @param Twig                   $renderer      A PhpRenderer instance.
-     * @param RouterInterface        $router        A RouterInterface instance.
-     * @param Helper                 $session       A Session instance.
-     * @param string                 $domain        Current application domain.
+     * @param Twig $renderer A PhpRenderer instance.
+     * @param RouterInterface $router A RouterInterface instance.
+     * @param Helper $session A Session instance.
+     * @param EntityFactory $entityFactory
+     * @param UserRepository $repository
+     * @param string $domain Current application domain.
      */
     public function __construct(
         AuthenticatorInterface $authenticator,
         Twig $renderer,
         RouterInterface $router,
         Helper $session,
+        EntityFactory $entityFactory,
+        UserRepository $repository,
         string $domain
     ) {
         $this->authenticator = $authenticator;
@@ -67,6 +82,8 @@ class SecurityController extends AbstractController
         $this->router = $router;
         $this->session = $session;
         $this->domain = $domain;
+        $this->entityFactory = $entityFactory;
+        $this->repository = $repository;
     }
 
     /**
@@ -139,5 +156,36 @@ class SecurityController extends AbstractController
         }
 
         return $referer;
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @return ResponseInterface
+     */
+    public function addUser(Request $request, Response $response): ResponseInterface
+    {
+        $tmplParams = [ 'error' => '', 'message' => ''];
+
+        if ($request->isPost()) {
+            /** @var array{username: string, password: string, firstName: string, lastName: string} $params */
+            $params = $request->getParsedBody();
+
+            try {
+                $user = $this->entityFactory->createUser(
+                    $params['username'],
+                    $params['password'],
+                    $params['firstName'],
+                    $params['lastName']
+                );
+
+                $this->repository->persist($user);
+                $tmplParams['message'] = "User '${params['username']}' is created.";
+            } catch (\Exception $exception) {
+                $tmplParams['error'] = $exception->getMessage();
+            }
+        }
+
+        return $this->renderer->render($response, 'add_user.twig', $tmplParams);
     }
 }

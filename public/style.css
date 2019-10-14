@@ -190,6 +190,11 @@ table tr.dir td:first-of-type a {
 	padding-bottom: 10px;
 }
 
+.success {
+	color: #198f00;
+	padding-bottom: 10px;
+}
+
 a {
 	font-weight: bold;
 	color: #FE4902;

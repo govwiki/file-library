@@ -35,6 +35,8 @@ class Routes
             $app->put('/files/{slug}/rename', FileController::class . ':rename')->setName('file-rename');
             $app->put('/files/{slug}/move', FileController::class . ':move')->setName('file-move');
             $app->delete('/files', FileController::class . ':butchRemove')->setName('file-butch-remove');
+
+            $app->map([ 'GET', 'POST' ], '/add-user', SecurityController::class . ':addUser')->setName('add-user');
         })->add(new AuthorizationCheckMiddleware());
 
         $app->map([ 'GET', 'POST' ], '/profile', ProfileController::class . ':index')->setName('profile');

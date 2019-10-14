@@ -6,6 +6,7 @@ use App\Controller\ErrorHandler;
 use App\Controller\FileController;
 use App\Controller\ProfileController;
 use App\Controller\SecurityController;
+use App\Entity\EntityFactory;
 use App\Repository\FileRepositoryInterface;
 use App\Repository\UserRepositoryInterface;
 use App\Service\Authenticator\AuthenticatorInterface;
@@ -112,10 +113,14 @@ class ContainerControllersFactory
             $router = $container->get('router');
             /** @var Helper $session */
             $session = $container->get('session');
+            /** @var EntityFactory $factory */
+            $factory = $container->get(EntityFactory::class);
+            /** @var UserRepositoryInterface $repository */
+            $repository = $container->get(UserRepositoryInterface::class);
             /** @var string $domain */
             $domain = $settings['domain'];
 
-            return new SecurityController($authenticator, $view, $router, $session, $domain);
+            return new SecurityController($authenticator, $view, $router, $session, $factory, $repository, $domain);
         };
     }
 }

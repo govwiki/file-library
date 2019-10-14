@@ -1,0 +1,33 @@
+{% extends 'layout.twig' %}
+
+{% block main %}
+    <div class="form form--add_user">
+        <form method="post">
+            {%- if error != '' -%}
+                <div class="error">{{ error }}</div>
+            {%- endif -%}
+            {%- if message != '' -%}
+                <div class="success">{{ message }}</div>
+            {%- endif -%}
+            <div class="form__row">
+                <label for="username">Username</label>
+                <input id="username" name="username">
+            </div>
+            <div class="form__row">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password">
+            </div>
+            <div class="form__row">
+                <label for="firstName">First Name</label>
+                <input id="firstName" name="firstName">
+            </div>
+            <div class="form__row">
+                <label for="lastName">Last Name</label>
+                <input id="lastName" name="lastName">
+            </div>
+            <div class="form__row">
+                <button class="btn">Submit</button>
+            </div>
+        </form>
+    </div>
+{% endblock main %}

@@ -29,6 +29,10 @@
             {%- else -%}
                 <a href="{{ path_for('login') }}">Login</a>
             {%- endif -%}
+            {%- if user.superUser -%}
+                <br>
+                <a href="{{ path_for('add-user') }}">Add User</a>
+            {%- endif -%}
         </div>
 
     </header>

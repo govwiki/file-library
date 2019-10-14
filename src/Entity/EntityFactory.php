@@ -125,6 +125,10 @@ class EntityFactory
             throw new \InvalidArgumentException(sprintf('User with username "%s" already exists', $username));
         }
 
+        if (empty($plainPassword)) {
+            throw new \InvalidArgumentException('Password cannot be empty.');
+        }
+
         return new User(
             $username,
             password_hash($plainPassword, PASSWORD_BCRYPT),
