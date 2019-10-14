@@ -88,8 +88,8 @@
     {{ parent() }}
     <script>
       window.documents = {
-        showActions: {{ user is defined ? 'true' : 'false' }},
-        showCheckboxes: {{ user is defined ? 'true' : 'false' }},
+        showActions: {{ user.superUser ? 'true' : 'false' }},
+        showCheckboxes: {{ user.superUser ? 'true' : 'false' }},
         user: JSON.parse('{{ userJson|e('js') }}'),
         defaultOrder: '{{ defaultOrder }}',
         butchRemoveUrl: '{{ path_for('file-butch-remove') }}',

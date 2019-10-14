@@ -26,7 +26,7 @@ class AuthorizationCheckMiddleware
         /** @var User|null $user */
         $user = $request->getAttribute('user');
 
-        if (! $user instanceof User) {
+        if (! $user instanceof User || !$user->isSuperUser()) {
             return $response->withJson([
                 'error' => [
                     'title' => 'Authorization fail',
