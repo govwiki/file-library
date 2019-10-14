@@ -14,7 +14,7 @@
 
     {% include 'Partial/states_form.twig' %}
 
-    {%- if user is defined -%}
+    {%- if user.superUser -%}
         {%- if currentDir is not null -%}
             <div style="text-align: center">
                 <button id="document-butch-remove" class="btn" disabled>Remove all Checked Items</button>
