@@ -22,7 +22,7 @@ use Symfony\Component\Lock\Store\SemaphoreStore;
 class DocumentUpdateFileCommand extends Command
 {
     const NAME = 'document:index:update:file';
-    const TEST_FILE_PATH = '/Community College District/OR Blue Mountain Community College 2004_test.pdf';
+    const TEST_FILE_PATH = '/Community College District/2004/OR Blue Mountain Community College 2004_test.pdf';
 
     /**
      * @var Storage
