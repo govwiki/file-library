@@ -164,7 +164,7 @@ class DocumentUpdateFileCommand extends Command
      * @param string $publicPathDirectory
      * @return \App\Entity\Directory|null
      */
-    private function getParentDirectoryBySlug(string $publicPathDirectory): ?\App\Entity\Directory
+    private function getParentDirectoryBySlug(string $publicPathDirectory)
     {
         return $this->storage->getIndex()->getDirectoryBySlug(
             $this->slugify->slugify($publicPathDirectory)
