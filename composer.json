@@ -20,7 +20,7 @@
         }
     },
     "require": {
-        "php": ">= 7.0",
+        "php": ">=7.1",
         "ext-pdo": "*",
         "ext-json": "*",
         "beberlei/assert": "^2.9",
@@ -49,6 +49,7 @@
         "phpmd/phpmd": "^2.6",
         "phpunit/phpunit": "^6.5",
         "squizlabs/php_codesniffer": "^3.2",
+        "symfony/var-dumper": "^3.4",
         "vimeo/psalm": "^1.0"
     },
     "config": {

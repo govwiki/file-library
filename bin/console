@@ -47,6 +47,11 @@ $console->addCommands([
         $container->get(\App\Storage\Index\StorageIndexInterface::class),
         $em
     ),
+    new \App\Command\DocumentUpdateFileCommand(
+        $container->get(\App\Storage\Storage::class),
+        $container->get(\App\Entity\EntityFactory::class),
+        $em
+    ),
     new \App\Command\DocumentCorruptionCheckCommand(
         $container->get(\App\Storage\Storage::class),
         $em->getConnection(),

@@ -13,7 +13,6 @@ use Psr\Http\Message\StreamInterface;
  */
 class Storage
 {
-
     /**
      * @var StorageAdapterInterface
      */
@@ -155,7 +154,7 @@ class Storage
      */
     public function isFileExists(string $path): bool
     {
-        return ($this->index->getFile($path) !== null) && $this->adapter->isFileExists($path);
+        return ($this->index->getFile($path) !== null) && $this->isFileExistInStorage($path);
     }
 
     /**
@@ -166,5 +165,15 @@ class Storage
     public function generatePublicUrl(string $path): string
     {
         return $this->adapter->generatePublicUrl($path);
+    }
+
+    /**
+     * Checks for the existence of a file in the storage
+     * @param $path
+     * @return boolean
+     */
+    public function isFileExistInStorage(string $path):bool
+    {
+        return $this->adapter->isFileExists($path);
     }
 }

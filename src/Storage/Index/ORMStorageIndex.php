@@ -90,6 +90,25 @@ class ORMStorageIndex implements StorageIndexInterface
     }
 
     /**
+     * @param string $slug Slug to required directory.
+     *
+     * @return Directory|null
+     */
+    public function getDirectoryBySlug(string $slug)
+    {
+        /** @var FileRepositoryInterface $repository */
+        $repository = $this->em->getRepository(AbstractFile::class);
+
+        $directory = $repository->findBySlug($slug);
+
+        if (($directory === null) || (! $directory instanceof Directory)) {
+            return null;
+        }
+
+        return $directory;
+    }
+
+    /**
      * @param string  $path Path where file should be created.
      * @param integer $size Stored file size.
      *

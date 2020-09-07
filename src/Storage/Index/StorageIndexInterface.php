@@ -31,6 +31,13 @@ interface StorageIndexInterface
     public function getDirectory(string $path);
 
     /**
+     * @param string $slug Slug to required directory.
+     *
+     * @return Directory|null
+     */
+    public function getDirectoryBySlug(string $slug);
+
+    /**
      * @param string  $path Path where file should be created.
      * @param integer $size Stored file size.
      *
