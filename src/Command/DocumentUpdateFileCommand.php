@@ -21,8 +21,8 @@ use Symfony\Component\Lock\Store\SemaphoreStore;
  */
 class DocumentUpdateFileCommand extends Command
 {
-    public const NAME = 'document:index:update:file';
-    private const TEST_FILE_PATH = '/Community College District/OR Blue Mountain Community College 2004_test.pdf';
+    const NAME = 'document:index:update:file';
+    const TEST_FILE_PATH = '/Community College District/OR Blue Mountain Community College 2004_test.pdf';
 
     /**
      * @var Storage
