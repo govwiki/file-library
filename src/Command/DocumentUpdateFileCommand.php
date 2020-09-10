@@ -5,6 +5,7 @@ namespace App\Command;
 
 use App\Entity\EntityFactory;
 use App\Storage\Directory;
+use App\Storage\File;
 use App\Storage\Storage;
 use Cocur\Slugify\Slugify;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,7 +23,7 @@ use Symfony\Component\Lock\Store\SemaphoreStore;
 class DocumentUpdateFileCommand extends Command
 {
     const NAME = 'document:index:update:file';
-    const TEST_FILE_PATH = '/Community College District/2004/OR Blue Mountain Community College 2004_test.pdf';
+//    const TEST_FILE_PATH = '/Community College District/2004/OR Blue Mountain Community College 2004_test.pdf';
 
     /**
      * @var Storage
@@ -146,15 +147,26 @@ class DocumentUpdateFileCommand extends Command
             return 0;
         }
 
+        $file    = new File($this->storage->getAdapter(), $this->storage->getIndex(), $path, 0);
+        $tmpPath = \tempnam(\sys_get_temp_dir(), 'update_one_file_');
+
+        if (($tmpPath === false) || ! \is_writable($tmpPath)) {
+            $symfonyStyle->error('Can\'t download file for checking \'cause tmp dir is not writable');
+            return 0;
+        }
+
+        file_put_contents($tmpPath, $file->getContent()->getContents());
+
         $file = $this->entityFactory->createDocument(
             $directory->getName(),
-            0,
+            filesize($tmpPath),
             $parentDirectory
         );
 
-
         $this->em->persist($file);
         $this->em->flush();
+
+        unlink($tmpPath);
 
         $symfonyStyle->success('File has been updated.');
         return 0;
