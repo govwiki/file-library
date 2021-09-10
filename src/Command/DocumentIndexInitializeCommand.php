@@ -121,6 +121,7 @@ class DocumentIndexInitializeCommand extends AbstractParallelCommand
                     case \MSG_ENOMSG:
                         return;
 
+                    case 22:
                     case 0:
                         break;
 
