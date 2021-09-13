@@ -11,6 +11,7 @@ use App\Repository\FileRepositoryInterface;
 use App\Repository\UserRepositoryInterface;
 use App\Service\Authenticator\AuthenticatorInterface;
 use App\Service\DocumentMover\DocumentMoverService;
+use App\Service\States;
 use App\Storage\Storage;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouterInterface;
@@ -66,6 +67,10 @@ class ContainerControllersFactory
             return new ProfileController($view, $router, $repository);
         };
 
+        $container[States::class] = function (): States {
+            return new States();
+        };
+
         /**
          * File controller.
          *
@@ -86,8 +91,10 @@ class ContainerControllersFactory
             $session = $container->get('session');
             /** @var RouterInterface $router */
             $router = $container->get('router');
+            /** @var RouterInterface $router */
+            $states = $container->get(States::class);
 
-            return new FileController($view, $repository, $storage, $mover, $session, $router);
+            return new FileController($view, $repository, $storage, $mover, $session, $router, $states);
         };
 
         /**

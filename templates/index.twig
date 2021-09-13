@@ -12,7 +12,7 @@
         </thead>
     </table>
 
-    {% include 'Partial/states_form.twig' %}
+    {{ include('Partial/states_form.twig', {states: states}) }}
 
     {%- if user.superUser -%}
         {%- if currentDir is not null -%}

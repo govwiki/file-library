@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Repository\FileRepositoryInterface;
 use App\Service\DocumentMover\DocumentMoverException;
 use App\Service\DocumentMover\DocumentMoverService;
+use App\Service\States;
 use App\Storage\Storage;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UploadedFileInterface;
@@ -26,36 +27,20 @@ use SlimSession\Helper;
  */
 class FileController extends AbstractController
 {
-
-    /**
-     * @var Twig
-     */
+    /**@var Twig*/
     private $renderer;
-
-    /**
-     * @var FileRepositoryInterface
-     */
+    /**@var FileRepositoryInterface*/
     private $repository;
-
-    /**
-     * @var Storage
-     */
+    /**@var Storage*/
     private $storage;
-
-    /**
-     * @var DocumentMoverService
-     */
+    /**@var DocumentMoverService*/
     private $documentMover;
-
-    /**
-     * @var Helper
-     */
+    /**@var Helper*/
     private $session;
-
-    /**
-     * @var RouterInterface
-     */
+    /**@var RouterInterface*/
     private $router;
+    /**@var States*/
+    private $states;
 
     /**
      * DocumentController constructor.
@@ -68,6 +53,7 @@ class FileController extends AbstractController
      *                                               instance.
      * @param Helper $session
      * @param RouterInterface $router
+     * @param States $states
      */
     public function __construct(
         Twig $renderer,
@@ -75,14 +61,16 @@ class FileController extends AbstractController
         Storage $storage,
         DocumentMoverService $documentMover,
         Helper $session,
-        RouterInterface $router
+        RouterInterface $router,
+        States $states
     ) {
-        $this->renderer = $renderer;
-        $this->repository = $repository;
-        $this->storage = $storage;
+        $this->renderer      = $renderer;
+        $this->repository    = $repository;
+        $this->storage       = $storage;
         $this->documentMover = $documentMover;
-        $this->session = $session;
-        $this->router = $router;
+        $this->session       = $session;
+        $this->router        = $router;
+        $this->states        = $states;
     }
 
     /**
@@ -123,7 +111,8 @@ class FileController extends AbstractController
                     'userJson' => json_encode($request->getAttribute('user')),
                     'topLevelDirNames' => $topLevelDirNames,
                     'defaultOrder' => ($file !== null) && ($file->getParent() === null) ? 'desc' : 'asc',
-                    'stateFilter' => $stateFilter
+                    'stateFilter' => $stateFilter,
+                    'states' => $this->states->getSortOptions()
                 ]);
 
             case $file instanceof Document:
