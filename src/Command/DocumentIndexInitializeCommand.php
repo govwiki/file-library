@@ -18,11 +18,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class DocumentIndexInitializeCommand extends AbstractParallelCommand
 {
-
-    const QUEUE_KEY = 11;
-
+    const QUEUE_KEY     = 11;
     const MSG_DIRECTORY = 12;
-    const MSG_FILE = 13;
+    const MSG_FILE      = 13;
 
     const NAME = 'document:index:initialize';
 
@@ -40,6 +38,13 @@ class DocumentIndexInitializeCommand extends AbstractParallelCommand
      * @var EntityManagerInterface
      */
     protected $em;
+
+    /**
+     * @var string
+     */
+    protected $excludeDirectory = [
+        //'/Charter'
+    ];
 
     /**
      * IndexInitCommand constructor.
@@ -197,6 +202,9 @@ class DocumentIndexInitializeCommand extends AbstractParallelCommand
         /** @var AdapterFile $file */
         foreach ($files as $file) {
             if ($file->isDirectory()) {
+                if (\in_array($file->getPath(), $this->excludeDirectory, true)) {
+                    continue;
+                }
                 //
                 // We should wait until all job in queue is processed before add
                 // new directory.

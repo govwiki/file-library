@@ -16,11 +16,10 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class DocumentIndexUpdateCommand extends DocumentIndexInitializeCommand
 {
-
-    const QUEUE_KEY = DocumentIndexInitializeCommand::QUEUE_KEY + 1;
+    const QUEUE_KEY         = DocumentIndexInitializeCommand::QUEUE_KEY + 1;
+    const TEMP_TABLE_PREFIX = '__temp_';
 
     const NAME = 'document:index:update';
-    const TEMP_TABLE_PREFIX = '__temp_';
 
     /**
      * @var string
