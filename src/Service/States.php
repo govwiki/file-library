@@ -87,7 +87,7 @@ final class States
     public function getSortOptions():array
     {
         $array = $this->getOptions();
-        \usort($array, function (string $stateNameOne, string $stateNameSecond) {
+        \uasort($array, function (string $stateNameOne, string $stateNameSecond) {
             return \strcmp($stateNameOne, $stateNameSecond);
         });
 
