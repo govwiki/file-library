@@ -203,6 +203,8 @@ class DocumentIndexInitializeCommand extends AbstractParallelCommand
         foreach ($files as $file) {
             if ($file->isDirectory()) {
                 if ($this->excludeDirectory($file)) {
+                    $output->writeln(\sprintf('Exclude directory "%s"', $file->getPath() ));
+
                     continue;
                 }
                 //
