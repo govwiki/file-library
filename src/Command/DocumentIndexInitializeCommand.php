@@ -43,7 +43,7 @@ class DocumentIndexInitializeCommand extends AbstractParallelCommand
      * @var string
      */
     protected $excludeDirectory = [
-        //'/Charter'
+        '/Unclassified/metadata/no_index'
     ];
 
     /**
@@ -202,7 +202,7 @@ class DocumentIndexInitializeCommand extends AbstractParallelCommand
         /** @var AdapterFile $file */
         foreach ($files as $file) {
             if ($file->isDirectory()) {
-                if (\in_array($file->getPath(), $this->excludeDirectory, true)) {
+                if ($this->excludeDirectory($file)) {
                     continue;
                 }
                 //
@@ -222,5 +222,24 @@ class DocumentIndexInitializeCommand extends AbstractParallelCommand
                 \msg_send($queue, self::MSG_FILE, [ $file->getPath(), $file->getSize() ]);
             }
         }
+    }
+
+    /**
+     * @return boolean
+     */
+    protected function excludeDirectory(AdapterFile $file)
+    {
+        if (! $file->isDirectory()) {
+            return false;
+        }
+
+        foreach ($this->excludeDirectory as $directory) {
+            $pos = \stripos($file->getPath(), $directory);
+            if ($pos !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
