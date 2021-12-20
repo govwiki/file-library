@@ -1,0 +1,45 @@
+{% extends 'layout.twig' %}
+
+{% block main %}
+    {% if users|length <= 0%}
+    <p>Users is empty</p>
+    {% else %}
+        <table>
+            <thead>
+            <tr>
+                <td>Username</td>
+                <td>First Name</td>
+                <td>Last Name</td>
+                <td>Admin</td>
+                <td>Action</td>
+            </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.firstName }}</td>
+                        <td>{{ user.lastName }}</td>
+                        <td>{{ user.isSuperUser ? 'True' : 'False' }}</td>
+                        <td>
+                            <a href="#">Edit</a>
+                            <a href="#">Change password</a>
+                            <form action="{{  path_for('user-delete', { username: user.username }) }}" method="post">
+                                <input type="hidden" name="_METHOD" value="DELETE"/>
+                                <input type="hidden" name="username" value="{{ user.username }}">
+                                <button>Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if pagination.needed %}
+            <div class="ui pagination menu">
+                {% for i in 1..pagination.lastPage %}
+                    <a class="{% if i == pagination.page %}active{% endif %} item" href="?page={{ i }}&limit={{ pagination.limit }}">{{ i }}</a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock main %}

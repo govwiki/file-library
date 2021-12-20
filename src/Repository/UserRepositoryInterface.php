@@ -11,7 +11,6 @@ use App\Entity\User;
  */
 interface UserRepositoryInterface
 {
-
     /**
      * @param string $username Username.
      *
@@ -20,9 +19,28 @@ interface UserRepositoryInterface
     public function findByUsername(string $username);
 
     /**
+     * @param integer $page
+     * @param integer $limit
+     * @return array
+     */
+    public function findByPage(int $page, int $limit):array;
+
+    /**
+     * @return integer
+     */
+    public function getCount():int;
+
+    /**
      * @param User $user Persisted user.
      *
      * @return void
      */
     public function persist(User $user);
+
+    /**
+     * @param User $user Persisted user.
+     *
+     * @return void
+     */
+    public function delete(User $user);
 }
