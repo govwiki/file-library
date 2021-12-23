@@ -41,6 +41,7 @@ class Routes
 
             $app->map([ 'GET' ], '/user', UserController::class . ':index')->setName('user-list');
             $app->map([ 'GET', 'POST' ], '/user/{username}', UserController::class . ':edit')->setName('user-edit');
+            $app->map([ 'GET', 'POST' ], '/user/{username}/change-password', UserController::class . ':changePassword')->setName('user-change-password');
             $app->map([ 'DELETE' ], '/user/{username}', UserController::class . ':delete')->setName('user-delete');
         })->add(new AuthorizationCheckMiddleware());
 

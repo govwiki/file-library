@@ -189,6 +189,65 @@ class UserController extends AbstractController
      *
      * @return ResponseInterface
      */
+    public function changePassword(Request $request, Response $response, array $args):ResponseInterface
+    {
+        $errors   = [];
+        $authUser = $request->getAttribute('user');
+
+        if (! $authUser instanceof User || ! $authUser->isSuperUser()) {
+            return $response->withRedirect($this->router->pathFor('login'));
+        }
+
+        $username = $this->getArgument($args, 'username');
+        $user     = $this->repository->findByUsername($username);
+
+        if (! $user instanceof User ) {
+            return $response->withRedirect($this->router->pathFor('user-list'));
+        }
+
+        if ($request->isPost()) {
+            /** @var array{ password: string } $params */
+            $params = $request->getParsedBody();
+
+            try {
+                Assert::lazy()
+                    ->that($params, '')
+                    ->keyExists('password', 'Password should not be empty')
+                    ->verifyNow();
+
+                $dataPassword = \trim($params[ 'password' ]);
+
+                Assert::lazy()
+                    ->that($dataPassword, 'password')
+                    ->satisfy(function (string $password = null) {
+                        $len = \strlen($password);
+
+                        return ($password === '') || (($len >= 6) && ($len <= 255));
+                    }, 'Password should be at least 6 characters long and less then 255')
+                    ->verifyNow();
+
+                $user->changePassword($dataPassword);
+
+                $this->repository->persist($user);
+
+                return $response->withRedirect($this->router->pathFor('user-list'));
+            } catch (LazyAssertionException $exception) {
+                $errors = $exception->getErrorExceptions();
+            }
+        }
+
+        return $this->renderer->render($response, 'user/change-password.twig', [
+            'error' => $errors
+        ]);
+    }
+
+    /**
+     * @param Request  $request  A http request.
+     * @param Response $response A http response.
+     * @param array    $args     Path arguments.
+     *
+     * @return ResponseInterface
+     */
     public function delete(Request $request, Response $response, array $args): ResponseInterface
     {
         $user = $request->getAttribute('user');
