@@ -116,6 +116,16 @@ table.dataTable tbody tr:hover td a {
 	color: #000;
 }
 
+table.dataTable tbody td ul.list-inline {
+	list-style: none;
+}
+
+table.dataTable tbody td.actions ul.list-inline a,
+table.dataTable tbody td.actions ul.list-inline li,
+table.dataTable tbody td.actions ul.list-inline li form {
+	display: inline;
+}
+
 .dataTables_filter {
 	margin-right: 10px;
 }

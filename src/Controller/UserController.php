@@ -63,7 +63,7 @@ class UserController extends AbstractController
         }
 
         $page  = (int) $request->getQueryParam('page', 1);
-        $limit = (int) $request->getQueryParam('limit', 5);
+        $limit = (int) $request->getQueryParam('limit', 20);
 
         if (! $user instanceof User) {
             return $response->withRedirect($this->router->pathFor('login'));
