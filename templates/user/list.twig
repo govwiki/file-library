@@ -43,7 +43,7 @@
             </tbody>
         </table>
         {% if pagination.needed %}
-            <div class="ui pagination menu">
+            <div class="wrapper-paginator">
                 {% for i in 1..pagination.lastPage %}
                     <a class="{% if i == pagination.page %}active{% endif %} item" href="?page={{ i }}&limit={{ pagination.limit }}">{{ i }}</a>
                 {% endfor %}
