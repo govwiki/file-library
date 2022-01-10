@@ -1,0 +1,58 @@
+{% extends 'layout.twig' %}
+
+{% block main %}
+    {% if users|length <= 0%}
+    <p>Users is empty</p>
+    {% else %}
+        <table class="dataTable">
+            <thead>
+            <tr>
+                <td>Username</td>
+                <td>First Name</td>
+                <td>Last Name</td>
+                <td>Admin</td>
+                <td>Action</td>
+            </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.firstName }}</td>
+                        <td>{{ user.lastName }}</td>
+                        <td>{{ user.isSuperUser ? 'True' : 'False' }}</td>
+                        <td class="actions">
+                            <ul class="list-inline">
+                                <li class="">
+                                    <a href="{{ path_for('user-edit', { username: user.username }) }}">Edit</a>
+                                </li>
+                                <li class="">
+                                    <a href="{{ path_for('user-change-password', { username: user.username }) }}">Change password</a>
+                                </li>
+                                <li class="">
+                                    <form action="{{  path_for('user-delete', { username: user.username }) }}" method="post">
+                                        <input type="hidden" name="_METHOD" value="DELETE"/>
+                                        <input type="hidden" name="username" value="{{ user.username }}">
+                                        <a href="#" class="btn-user-delete" >Delete</a>
+                                    </form>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if pagination.needed %}
+            <div class="wrapper-paginator">
+                {% for i in 1..pagination.lastPage %}
+                    <a class="{% if i == pagination.page %}active{% endif %} item" href="?page={{ i }}&limit={{ pagination.limit }}">{{ i }}</a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock main %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="/users.js?v=2"></script>
+{% endblock javascripts %}

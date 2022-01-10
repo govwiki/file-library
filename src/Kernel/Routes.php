@@ -5,6 +5,7 @@ namespace App\Kernel;
 use App\Controller\FileController;
 use App\Controller\ProfileController;
 use App\Controller\SecurityController;
+use App\Controller\UserController;
 use App\Middleware\AuthorizationCheckMiddleware;
 use Slim\App;
 
@@ -37,6 +38,11 @@ class Routes
             $app->delete('/files', FileController::class . ':butchRemove')->setName('file-butch-remove');
 
             $app->map([ 'GET', 'POST' ], '/add-user', SecurityController::class . ':addUser')->setName('add-user');
+
+            $app->map([ 'GET' ], '/user', UserController::class . ':index')->setName('user-list');
+            $app->map([ 'GET', 'POST' ], '/user/{username}', UserController::class . ':edit')->setName('user-edit');
+            $app->map([ 'GET', 'POST' ], '/user/{username}/change-password', UserController::class . ':changePassword')->setName('user-change-password');
+            $app->map([ 'DELETE' ], '/user/{username}', UserController::class . ':delete')->setName('user-delete');
         })->add(new AuthorizationCheckMiddleware());
 
         $app->map([ 'GET', 'POST' ], '/profile', ProfileController::class . ':index')->setName('profile');

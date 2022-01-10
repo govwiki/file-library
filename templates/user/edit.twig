@@ -1,0 +1,45 @@
+{% extends 'layout.twig' %}
+
+{% block main %}
+    <div class="form form--profile">
+        <form method="post" action="{{ path_for('user-edit', { username: user.username }) }}">
+            {%- for err in error -%}
+                <div class="error">{{ err.message }}</div>
+            {%- endfor -%}
+
+            <div class="form__row">
+                <label for="first_name">User name</label>
+                <input id="first_name" name="username" value="{{ user.username }}">
+            </div>
+            <div class="form__row">
+                <label for="first_name">First name</label>
+                <input id="first_name" name="first_name" value="{{ user.firstName }}">
+            </div>
+            <div class="form__row">
+                <label for="last_name">Last name</label>
+                <input id="last_name" name="last_name" value="{{ user.lastName }}">
+            </div>
+            <div class="form__row">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password">
+            </div>
+            <div class="form__row">
+                <label for="admin">Admin</label>
+                <input id="admin" name="admin" type="checkbox"
+                    {% if user.isSuperUser %} checked {% endif %}
+                    value="{{ user.isSuperUser }}"
+                >
+            </div>
+            <div><small>Leave empty if don't want to change password</small></div>
+            <br>
+            <div class="form__row">
+                <button class="btn">Submit</button>
+            </div>
+        </form>
+    </div>
+{% endblock main %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="/form.js?v=2"></script>
+{% endblock javascripts %}

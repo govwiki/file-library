@@ -6,6 +6,7 @@ use App\Controller\ErrorHandler;
 use App\Controller\FileController;
 use App\Controller\ProfileController;
 use App\Controller\SecurityController;
+use App\Controller\UserController;
 use App\Entity\EntityFactory;
 use App\Repository\FileRepositoryInterface;
 use App\Repository\UserRepositoryInterface;
@@ -65,6 +66,17 @@ class ContainerControllersFactory
             $repository = $container->get(UserRepositoryInterface::class);
 
             return new ProfileController($view, $router, $repository);
+        };
+
+        $container[UserController::class] = function (ContainerInterface $container): UserController {
+            /** @var Twig $view */
+            $view = $container->get('view');
+            /** @var RouterInterface $router */
+            $router = $container->get('router');
+            /** @var UserRepositoryInterface $repository */
+            $repository = $container->get(UserRepositoryInterface::class);
+
+            return new UserController($view, $router, $repository);
         };
 
         $container[States::class] = function (): States {
