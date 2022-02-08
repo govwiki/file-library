@@ -1,13 +1,68 @@
+:root {
+	--black: #231f20;
+	--white: #fff;
+	--light-gray: #eee;
+	--mid-gray: #ccc;
+	--dark-gray: #4e4e4e;
+	--reason-orange: #FF6C2F;
+	--link-blue: #005daa;
+	--red: #c80000;
+	--green: #198f00;
+}
+
+@font-face {
+	font-family: "Merriweather";
+	src: url("/fonts/merriweather-v19-latin/merriweather-v19-latin-regular.ttf");
+}
+@font-face {
+	font-family: "Merriweather";
+	font-weight: 700;
+    src: url("/fonts/merriweather-v19-latin/merriweather-v19-latin-700.ttf");
+}
+@font-face {
+	font-family: "Merriweather";
+	src: url("/fonts/merriweather-v19-latin/merriweather-v19-latin-italic.ttf");
+	font-style: italic;
+}
+
+@font-face {
+	font-family: "Open Sans";
+	src: url("/fonts/open-sans-v15-latin/open-sans-v15-latin-regular.ttf");
+}
+@font-face {
+	font-family: "Open Sans";
+	font-weight: 600;
+	src: url("/fonts/open-sans-v15-latin/open-sans-v15-latin-600.ttf");
+}
+@font-face {
+	font-family: "Open Sans";
+	font-weight: 700;
+	src: url("/fonts/open-sans-v15-latin/open-sans-v15-latin-700.ttf");
+}
+@font-face {
+	font-family: "Open Sans";
+	src: url("/fonts/open-sans-v15-latin/open-sans-v15-latin-600italic.ttf");
+	font-weight: bold;
+	font-style: italic;
+}
+
+@font-face {
+	font-family: "Open Sans";
+	src: url("/fonts/open-sans-v15-latin/open-sans-v15-latin-italic.ttf");
+	font-style: italic;
+}
+
 * {
 	padding: 0;
 	margin: 0;
 }
 
 body {
-	color: #333;
-	font: 14px Sans-Serif;
+	color: var(--black);
+	font-family: "Open Sans", sans-serif;
+	font-size: 14px;
 	padding: 50px;
-	background: #eee;
+	background: var(--light-gray);
 }
 
 h1 {
@@ -25,9 +80,9 @@ header,
 main,
 footer,
 .form--login {
-	box-shadow: 0 5px 10px -5px rgba(0,0,0,0.5);
+	box-shadow: 0 5px 10px -5px rgba(var(--black),0.5);
 	position: relative;
-	background: white;
+	background: var(--white);
 }
 
 main {
@@ -40,19 +95,19 @@ footer {
 	padding: 10px;
 	text-align: center;
 	font-weight: bold;
-	color: #888888;
+	color: var(--dark-gray);
 }
 
 table {
-	background-color: #F3F3F3;
+	background-color: var(--light-gray);
 	border-collapse: collapse;
 	width: 100%;
 	margin: 15px 0;
 }
 
 th {
-	background-color: #FE4902;
-	color: #FFF;
+	background-color: var(--reason-orange);
+	color: var(--white);
 	cursor: pointer;
 	padding: 5px 10px;
 }
@@ -70,7 +125,7 @@ a {
 }
 
 td a {
-	color: #663300;
+	color: var(--link-blue);
 	display: block;
 	padding: 5px 10px;
 }
@@ -104,16 +159,16 @@ table.dataTable thead th {
 }
 
 table.dataTable tbody tr:nth-of-type(odd) {
-	background-color: #E6E6E6;
+	background-color: var(--light-gray);
 }
 
 table.dataTable tbody tr:hover td {
-	background-color:#CACACA;
+	background-color:var(--mid-gray);
 	cursor: pointer;
 }
 
 table.dataTable tbody tr:hover td a {
-	color: #000;
+	color: var(--black);
 }
 
 table.dataTable tbody td ul.list-inline {
@@ -209,18 +264,18 @@ table tr.dir td:first-of-type a {
 }
 
 .error {
-	color: #c80000;
+	color: var(--red);
 	padding-bottom: 10px;
 }
 
 .success {
-	color: #198f00;
+	color: var(--green);
 	padding-bottom: 10px;
 }
 
 a {
 	font-weight: bold;
-	color: #FE4902;
+	color: var(--reason-orange);
 }
 
 a:hover {
@@ -231,12 +286,12 @@ a:hover {
   -webkit-border-radius: 9px;
   -moz-border-radius: 9px;
   border-radius: 9px;
-  text-shadow: 1px 1px 3px #bdbdbd;
-  color: #FE4902;
+  text-shadow: 1px 1px 3px var(--mid-gray);
+  color: var(--reason-orange);
   font-size: 16px;
-  background: #ffffff;
+  background: var(--white);
   padding: 5px 15px;
-  border: solid #FE4902 2px;
+  border: solid var(--reason-orange) 2px;
   text-decoration: none;
 }
 
@@ -249,20 +304,20 @@ a:hover {
 }
 
 .btn:hover {
-	background: #FE4902;
+	background: var(--reason-orange);
 	text-decoration: none;
-	color: #ffffff;
+	color: var(--white);
 }
 .btn:disabled,
 .btn:hover:disabled,
 .btn:active:disabled {
-	color: gray;
-	border-color: gray;
-	background: white;
+	color: var(--dark-gray);
+	border-color: var(--dark-gray);
+	background: var(--white);
 }
 
 .btn-borderless {
-	color: #606060;
+	color: var(--dark-gray);
 	border-color: transparent;
 }
 
@@ -270,7 +325,7 @@ a:hover {
 .btn-borderless:active {
 	outline: none;
 	background: none !important;
-	color: #FE4902;
+	color: var(--reason-orange);
 }
 
 .btn-group:after {
@@ -293,25 +348,25 @@ a:hover {
 	width: 100%;
 	height: 100%;
 	overflow: auto;
-	background-color: rgb(0,0,0);
-	background-color: rgba(0,0,0,0.4);
+	background-color: var(--black);
+	background-color: rgba(var(--black),0.4);
 }
 
 .modal {
-	background-color: #fefefe;
+	background-color: var(--light-gray);
 	margin: 15% auto;
-	border: 1px solid #888;
+	border: 1px solid var(--mid-gray);
 	width: 400px;
 	border-radius: 8px;
 }
 
 .modal-header {
 	padding: 15px;
-	border-bottom: 1px solid #dadada;
+	border-bottom: 1px solid var(--light-gray);
 }
 
 .modal-close {
-	color: #aaa;
+	color: var(--mid-gray);
 	float: right;
 	font-size: 28px;
 	font-weight: bold;
@@ -327,7 +382,7 @@ a:hover {
 
 .modal-close:hover,
 .modal-close:focus {
-	color: black;
+	color: var(--black);
 	text-decoration: none;
 	cursor: pointer;
 }
@@ -355,14 +410,14 @@ a:hover {
 	display: block;
 	padding: 5px;
 	border-radius: 4px;
-	border: 1px solid #dadada;
+	border: 1px solid var(--mid-gray);
 	width: 100%;
 	box-sizing:border-box
 }
 
 .loader-wrapper {
 	position: absolute;
-	background: white;
+	background: var(--white);
 	left: 0;
 	top: 0;
 	right: 0;
@@ -388,7 +443,7 @@ a:hover {
 	animation: loader 1.8s infinite ease-in-out;
 }
 .loader {
-	color: #d4d4d4;
+	color: var(--mid-gray);
 	font-size: 10px;
 	margin: 80px auto;
 	position: relative;
